@@ -359,10 +359,18 @@ function tick(sym, token) {
 async function hud() {
   let s; try { s = await (await fetch("/api/status")).json(); }
   catch { $("#hud").innerHTML = `<span class="o">◼</span>&nbsp;<b>OFFLINE</b>`; return; }
+  // Launches come in bursts, so a per-minute figure sits at zero most of the time.
+  // Report the hourly rate, and in a lull say how long it has been quiet rather
+  // than showing a zero that reads as broken.
+  const ago = (sec) => sec < 90 ? null
+    : sec < 3600 ? `${Math.round(sec / 60)}m` : `${(sec / 3600).toFixed(1)}h`;
+  const quiet = ago(s.quietSec ?? 0);
+  const rate = s.perHour != null ? num(s.perHour) + " launches/h" : s.perMin + " per min";
   $("#hud").innerHTML =
     `<span class="a live">◼</span>&nbsp;live<span class="sep">/</span>` +
     `block <b>${num(s.block)}</b><span class="sep">/</span>` +
-    `<b>${s.perMin}</b> per min<span class="sep">/</span>` +
+    `<b>${rate}</b><span class="sep">/</span>` +
+    (quiet ? `last <b>${quiet}</b> ago<span class="sep">/</span>` : ``) +
     `<b>${num(s.logged)}</b> logged`;
   const F = (n, k, acid) =>
     `<div class="fig"><div class="n ${acid ? "a" : ""}">${n}</div><div class="k">${k}</div></div>`;
@@ -642,7 +650,7 @@ function drawLive() {
       .map(f => `<span class="${f.dir === "down" || f.dir === "warn" ? "d" : ""}">${esc(f.text)}</span>`).join(" · ");
     // Use the space freed by the removed countdown column for signal flags.
     return `<div class="pick" data-a="${r.token}">
-      <span class="pn">${new Date(r.at).toLocaleTimeString("en-GB").slice(0, 5)}</span>
+      <span class="pn">${new Date(r.at).toLocaleTimeString("en-GB").slice(0, 8)}</span>
       <span class="pt">$${esc(tick(r.symbol, r.token))}</span>
       <span class="pf">${fl}</span>
       <span class="pp ${cl(t.lift)}">${pct(t.p)}</span></div>`;

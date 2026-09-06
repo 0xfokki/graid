@@ -71,7 +71,7 @@ const feed = [];
 const DAY = 24 * 3600_000;
 const recent = [];
 const clients = new Set();
-const stats = { block: 0, launchesSeen: 0, startedAt: Date.now(), lastLaunchAt: 0, predictions: 0, skipped: 0, perMin: 0 };
+const stats = { block: 0, launchesSeen: 0, startedAt: Date.now(), lastLaunchAt: 0, predictions: 0, skipped: 0, perMin: 0, perHour: 0, behind: 0 };
 const rateWindow = [];
 
 function push(item) {
@@ -169,6 +169,11 @@ setInterval(resolveDue, 60_000);
 // ── live feed ──────────────────────────────────────────────────────────────────
 let cursor = null;
 let busy = false;
+// Never rewind past this: beyond it, accept the gap rather than spending a whole
+// cycle on history and falling further behind live.
+const MAX_LOOKBACK = 12000n;   // roughly twenty minutes of blocks
+const BATCH = 10;              // launches scored per pass
+const handled = new Set();     // tx:logIndex, so a re-read is never scored twice
 async function poll() {
   if (busy) return;
   busy = true;
@@ -177,13 +182,29 @@ async function poll() {
     stats.block = Number(head);
     if (cursor === null) cursor = head - 60n;
     if (head <= cursor) return;
-    const from = cursor + 1n > head - 600n ? cursor + 1n : head - 600n;
+    // Read from where we stopped, not from a fixed window. This clamped to the
+    // last 600 blocks — one minute — so any cycle running longer than a minute
+    // dropped every launch in between, silently. Bursts and a busy resolver make
+    // cycles longer than a minute routine.
+    let from = cursor + 1n;
+    if (head - from > MAX_LOOKBACK) from = head - MAX_LOOKBACK;
     const logs = await LOGS.getLogs({ address: FACTORY, event: evTokenLaunched, fromBlock: from, toBlock: head });
-    cursor = head;
-    stats.launchesSeen += logs.length;
-    for (const l of logs) { rateWindow.push(Date.now()); note(seenByDeployer, l.args.deployer.toLowerCase()); }
+    // Score a bounded slice and leave the rest to the next pass: a burst of twenty
+    // launches, each needing several chain reads, would otherwise hold this loop
+    // long enough for the window to slide out of reach again.
+    const fresh = logs.filter((l) => !handled.has(l.transactionHash + ":" + l.logIndex));
+    const batch = fresh.slice(0, BATCH);
+    cursor = batch.length < fresh.length ? batch[batch.length - 1].blockNumber - 1n : head;
+    stats.launchesSeen += batch.length;
+    stats.behind = fresh.length - batch.length;
+    for (const l of batch) {
+      handled.add(l.transactionHash + ":" + l.logIndex);
+      rateWindow.push(Date.now());
+      note(seenByDeployer, l.args.deployer.toLowerCase());
+    }
+    if (handled.size > 4000) for (const k of [...handled].slice(0, 2000)) handled.delete(k);
     // Process every event, not just the first eight; the prediction log must be complete.
-    for (const l of logs) {
+    for (const l of batch) {
       try {
         const row = await readToken(l.args.token, { tx: l.transactionHash });
         row.block = Number(l.blockNumber);
@@ -203,13 +224,19 @@ async function poll() {
       } catch { stats.skipped++; }
     }
   } catch {} finally {
-    const cut = Date.now() - 60_000;
+    // Keep a quarter hour, not a minute: launches arrive twenty at a time inside
+    // one minute and then nothing for ten, so a one-minute window reads zero most
+    // of the time and a working agent looks stalled.
+    const cut = Date.now() - 900_000;
     while (rateWindow.length && rateWindow[0] < cut) rateWindow.shift();
-    stats.perMin = rateWindow.length;
+    const minuteCut = Date.now() - 60_000;
+    stats.perMin = rateWindow.reduce((n, t) => n + (t >= minuteCut ? 1 : 0), 0);
+    const span = Math.min(900_000, Date.now() - stats.startedAt);
+    stats.perHour = span > 0 ? Math.round((rateWindow.length * 3600_000) / span) : 0;
     busy = false;
   }
 }
-setInterval(poll, 6000);
+setInterval(poll, 2500);
 poll();
 
 // ── warm the deployer index at startup ─────────────────────────────────────────
@@ -268,7 +295,7 @@ createServer(async (req, res) => {
     const logged = lines(PRED_LOG);
     const resolved = lines(RESOLVE_LOG);
     return json(res, 200, {
-      block: stats.block, perMin: stats.perMin, modelVersion: model.version,
+      block: stats.block, perMin: stats.perMin, perHour: stats.perHour, behind: stats.behind, modelVersion: model.version,
       analyzed: logged, trainingN: model.outside.n,
       base: model.outside.base, eventThreshold: model.eventThreshold,
       holdout: model.holdout,
