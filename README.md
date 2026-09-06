@@ -12,9 +12,9 @@
 </p>
 
 <p align="center">
-  <img alt="predictions" src="https://img.shields.io/badge/predictions-11%2C837-a8ff62?style=flat-square&labelColor=070806">
-  <img alt="scored" src="https://img.shields.io/badge/scored-7%2C069-e8e8dd?style=flat-square&labelColor=070806">
-  <img alt="auc" src="https://img.shields.io/badge/AUC%20live-0.756-a8ff62?style=flat-square&labelColor=070806">
+  <img alt="predictions" src="https://img.shields.io/badge/predictions-15%2C184-a8ff62?style=flat-square&labelColor=070806">
+  <img alt="scored" src="https://img.shields.io/badge/scored-8%2C451-e8e8dd?style=flat-square&labelColor=070806">
+  <img alt="auc" src="https://img.shields.io/badge/AUC%20live-0.764-a8ff62?style=flat-square&labelColor=070806">
   <img alt="chain" src="https://img.shields.io/badge/Robinhood%20Chain-4663-e8e8dd?style=flat-square&labelColor=070806">
   <img alt="custody" src="https://img.shields.io/badge/custody-none-e8e8dd?style=flat-square&labelColor=070806">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-ff653d?style=flat-square&labelColor=070806">
@@ -97,13 +97,13 @@ Snapshot from **2026-09-06**. The live record continues to grow.
 
 | Metric | Result |
 |---|---:|
-| Predictions on record | 11,837 |
-| Predictions resolved | 7,069 |
-| Live AUC | **0.756** |
-| Brier score | **0.190** |
-| Base-rate Brier | 0.207 |
-| Outside-money base rate | 28.6% |
-| Top-decile hit rate | **49.9%** |
+| Predictions on record | 15,184 |
+| Predictions resolved | 8,451 |
+| Live AUC | **0.764** |
+| Brier score | **0.181** |
+| Base-rate Brier | 0.200 |
+| Outside-money base rate | 26.3% |
+| Top-decile hit rate | **49.5%** |
 
 The held-out training check produced an AUC of **0.729**, with a range of 0.665–0.786 across four folds.
 
@@ -139,7 +139,7 @@ a prediction cannot have been written after its outcome was known.
 
 ## Architecture
 
-| File | Responsibility |
+| Path | Responsibility |
 |---|---|
 | [`src/server.mjs`](src/server.mjs) | Autonomous event loop, prediction commits, resolution queue, API, and web server |
 | [`src/chain.mjs`](src/chain.mjs) | Robinhood Chain reads, event decoding, transaction context, and curve activity |
@@ -150,6 +150,7 @@ a prediction cannot have been written after its outcome was known.
 | [`scripts/verify.mjs`](scripts/verify.mjs) | Recomputes the published track record from the raw logs |
 | [`test/`](test/) | Regression tests for the invariants the record depends on |
 | [`analysis/`](analysis/) | Offline studies: holdout validation and migration follow-up |
+| [`docs/`](docs/) | What is predicted, the model card, and how the agent is run |
 | [`src/collect/`](src/collect/) | Samplers used to build the training windows |
 | `data/*.jsonl.gz` | Append-only predictions and the outcomes measured after the window |
 
@@ -177,7 +178,7 @@ DATA_DIR=./data npm start
 To rebuild `model.json` from the included training windows:
 
 ```bash
-node model.mjs
+npm run model
 ```
 
 ## Agent API
@@ -191,7 +192,7 @@ The server exposes the same intelligence used by the web interface:
 | `/api/scoreboard` | Public performance and calibration metrics |
 | `/api/verdicts` | Recently resolved predictions |
 | `/api/graduated` | Scored launches that later reached a pool |
-| `/api/predict` | Analyze a supported token by address or symbol |
+| `/api/predict` | Analyze a token by address; ticker lookup covers the collected set only |
 | `/api/model` | Current model metadata and feature statistics |
 
 ## Trust model
