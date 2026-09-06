@@ -12,9 +12,9 @@
 </p>
 
 <p align="center">
-  <img alt="predictions" src="https://img.shields.io/badge/predictions-15%2C184-a8ff62?style=flat-square&labelColor=070806">
-  <img alt="scored" src="https://img.shields.io/badge/scored-8%2C451-e8e8dd?style=flat-square&labelColor=070806">
-  <img alt="auc" src="https://img.shields.io/badge/AUC%20live-0.764-a8ff62?style=flat-square&labelColor=070806">
+  <img alt="predictions" src="https://img.shields.io/badge/predictions-18%2C482-a8ff62?style=flat-square&labelColor=070806">
+  <img alt="scored" src="https://img.shields.io/badge/scored-10%2C009-e8e8dd?style=flat-square&labelColor=070806">
+  <img alt="auc" src="https://img.shields.io/badge/AUC%20live-0.769-a8ff62?style=flat-square&labelColor=070806">
   <img alt="chain" src="https://img.shields.io/badge/Robinhood%20Chain-4663-e8e8dd?style=flat-square&labelColor=070806">
   <img alt="custody" src="https://img.shields.io/badge/custody-none-e8e8dd?style=flat-square&labelColor=070806">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-ff653d?style=flat-square&labelColor=070806">
@@ -30,7 +30,7 @@
 
 Thousands of tokens can launch in a single day. Most never attract meaningful demand, and only a small fraction fill their bonding curve and reach a real exchange.
 
-GRAID is an always-on **predictive AI agent** built to identify that signal at launch time. It has already analyzed more than **10,000 live launches**. For each new `TokenLaunched` event, it gathers on-chain context, assigns a probability, and permanently records its call while the answer is still unknown.
+GRAID is an always-on **predictive AI agent** built to identify that signal at launch time. It has already scored more than **15,000 live launches**. For each new `TokenLaunched` event, it gathers on-chain context, assigns a probability, and permanently records its call while the answer is still unknown.
 
 Later, the agent revisits the curve, measures what actually happened, and adds the result to its public track record. Wins and misses are treated the same way. There is no wallet, no trade execution, and no hand-picked showcase.
 
@@ -102,13 +102,13 @@ Snapshot from **2026-09-06**. The live record continues to grow.
 
 | Metric | Result |
 |---|---:|
-| Predictions on record | 15,184 |
-| Predictions resolved | 8,451 |
-| Live AUC | **0.764** |
-| Brier score | **0.181** |
-| Base-rate Brier | 0.200 |
-| Outside-money base rate | 26.3% |
-| Top-decile hit rate | **49.5%** |
+| Predictions on record | 18,482 |
+| Predictions resolved | 10,009 |
+| Live AUC | **0.769** |
+| Brier score | **0.175** |
+| Base-rate Brier | 0.197 |
+| Outside-money base rate | 25.1% |
+| Top-decile hit rate | **48.7%** |
 
 The held-out training check produced an AUC of **0.729**, with a range of 0.665–0.786 across four folds.
 
@@ -213,7 +213,7 @@ The agent is designed to make hindsight manipulation difficult:
 
 ## Limitations
 
-- The initial feature-rate fit used 600 launches from four time windows on a single day; the 10K+ figure refers to launches analyzed live, not the training-set size.
+- The initial feature-rate fit used 600 launches from four time windows on a single day; the 15K+ figure refers to launches scored live, not the training-set size.
 - It has limited evidence across major market-regime changes.
 - Naive Bayes can double-count correlated signals and overstate confidence.
 - The migration model is based on far fewer positive examples than the traction model.
