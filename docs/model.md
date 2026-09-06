@@ -44,6 +44,22 @@ are summed and passed through a sigmoid.
 **Missing data carries a weight of exactly zero.** A feature that could not be read
 must not push the answer in either direction. A test enforces this.
 
+## Reproducing the fit
+
+The four sampled windows the model was fitted on are committed as `src/w*.json`,
+so the fit can be reproduced from a clean checkout:
+
+```bash
+npm install
+npm run model
+```
+
+This reproduces every fitted weight exactly. It does **not** reproduce the
+`calibration` block, and the version hash will therefore differ. Calibration is a
+separate step: the Platt coefficients are fitted against live resolved outcomes,
+which arrive after the model is built and are not part of the training windows.
+A rebuilt `model.json` is the uncalibrated model.
+
 ## Calibration
 
 Raw naive Bayes is overconfident: it treats correlated features as independent and

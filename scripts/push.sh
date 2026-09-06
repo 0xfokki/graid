@@ -35,7 +35,7 @@ cp -f "$BACKUPS"/*.jsonl.gz data/ 2>/dev/null || true
 cp -f "$APP"/*.mjs src/ 2>/dev/null || true
 cp -f "$APP"/model.json src/ 2>/dev/null || true
 cp -f "$APP"/index.html "$APP"/base.html web/ 2>/dev/null || true
-rm -f src/w*.json src/*.bak web/*.bak 2>/dev/null || true
+rm -f src/*.bak web/*.bak 2>/dev/null || true
 
 git add -A
 if git diff --cached --quiet; then

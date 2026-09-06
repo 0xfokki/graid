@@ -6,6 +6,3 @@ node_modules/
 # Runtime logs live on the server; only the dated snapshots in data/ are committed.
 data/predictions.jsonl
 data/resolutions.jsonl
-
-# Sampled training windows are large and are not needed to run the agent.
-src/w*.json

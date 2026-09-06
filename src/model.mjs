@@ -128,7 +128,10 @@ export function predict(model, row) {
 
 // --- build the model from sampled windows -------------------------------------
 if (process.argv[1]?.endsWith("model.mjs")) {
-  const WINDOWS = ["w14.json", "w12.json", "w10.json", "w8.json"];
+  // Read the sampled windows from beside this file so the model can be rebuilt
+  // from a fresh checkout, not only from the directory it was first run in.
+  const DIR = process.env.WINDOWS_DIR ?? HERE;
+  const WINDOWS = ["w14.json", "w12.json", "w10.json", "w8.json"].map((w) => join(DIR, w));
   const rows = [];
   for (const f of WINDOWS) {
     for (const r of JSON.parse(readFileSync(f, "utf8"))) if (!r.error) rows.push(r);
