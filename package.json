@@ -1,0 +1,15 @@
+{
+  "name": "graid",
+  "version": "1.0.0",
+  "description": "An autonomous agent that scores every token launch on Robinhood Chain before the outcome exists, then returns to score itself.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test \"test/*.test.mjs\"",
+    "verify": "node scripts/verify.mjs",
+    "model": "node src/model.mjs"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": { "viem": "^2.21.0" }
+}

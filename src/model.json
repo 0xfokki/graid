@@ -1,0 +1,403 @@
+{
+ "version": "342dafb0",
+ "eventThreshold": 10,
+ "observationHours": 2,
+ "windows": 4,
+ "outside": {
+  "base": 0.3433333333333333,
+  "n": 600,
+  "events": 206,
+  "features": {
+   "devBuy": {
+    "label": "creator buy",
+    "groups": {
+     "over 10%": {
+      "n": 206,
+      "k": 115,
+      "rateRaw": 0.558252427184466,
+      "rateSmoothed": 0.5392330383480826,
+      "weight": 0.8057301621228169
+     },
+     "none": {
+      "n": 96,
+      "k": 10,
+      "rateRaw": 0.10416666666666667,
+      "rateSmoothed": 0.1454022988505747,
+      "weight": -1.1226517172242816
+     },
+     "6–10%": {
+      "n": 57,
+      "k": 26,
+      "rateRaw": 0.45614035087719296,
+      "rateSmoothed": 0.42683982683982685,
+      "weight": 0.3537183586140348
+     },
+     "under 1%": {
+      "n": 89,
+      "k": 9,
+      "rateRaw": 0.10112359550561797,
+      "rateSmoothed": 0.14556574923547402,
+      "weight": -1.1213369450771338
+     },
+     "1–6%": {
+      "n": 152,
+      "k": 46,
+      "rateRaw": 0.3026315789473684,
+      "rateSmoothed": 0.30736434108527133,
+      "weight": -0.16399555301622704
+     }
+    }
+   },
+   "serial": {
+    "label": "serial deployer",
+    "groups": {
+     "5 or more": {
+      "n": 83,
+      "k": 45,
+      "rateRaw": 0.5421686746987951,
+      "rateSmoothed": 0.5035598705501618,
+      "weight": 0.6627144633194884
+     },
+     "2–4": {
+      "n": 111,
+      "k": 39,
+      "rateRaw": 0.35135135135135137,
+      "rateSmoothed": 0.35012722646310435,
+      "weight": 0.02999472240915735
+     },
+     "1 launch": {
+      "n": 406,
+      "k": 122,
+      "rateRaw": 0.30049261083743845,
+      "rateSmoothed": 0.3025039123630673,
+      "weight": -0.186927953229872
+     }
+    }
+   },
+   "exempt": {
+    "label": "tax-exempt wallets",
+    "groups": {
+     "no data": {
+      "n": 262,
+      "k": 109,
+      "rateRaw": 0.41603053435114506,
+      "rateSmoothed": 0.41087470449172575,
+      "weight": 0
+     },
+     "none": {
+      "n": 234,
+      "k": 51,
+      "rateRaw": 0.21794871794871795,
+      "rateSmoothed": 0.22782152230971128,
+      "weight": -0.5721784459926796
+     },
+     "3 or more": {
+      "n": 76,
+      "k": 39,
+      "rateRaw": 0.5131578947368421,
+      "rateSmoothed": 0.4777777777777778,
+      "weight": 0.559527254491857
+     },
+     "1–2": {
+      "n": 28,
+      "k": 7,
+      "rateRaw": 0.25,
+      "rateSmoothed": 0.2888888888888889,
+      "weight": -0.2523118048298366
+     }
+    }
+   },
+   "socials": {
+    "label": "socials",
+    "groups": {
+     "yes": {
+      "n": 508,
+      "k": 191,
+      "rateRaw": 0.37598425196850394,
+      "rateSmoothed": 0.3747474747474748,
+      "weight": 0.1365715304311922
+     },
+     "no": {
+      "n": 92,
+      "k": 15,
+      "rateRaw": 0.16304347826086957,
+      "rateSmoothed": 0.19523809523809524,
+      "weight": -0.7678519077104128
+     }
+    }
+   },
+   "tax": {
+    "label": "creator fee",
+    "groups": {
+     "zero": {
+      "n": 385,
+      "k": 160,
+      "rateRaw": 0.4155844155844156,
+      "rateSmoothed": 0.4120164609053498,
+      "weight": 0.29283908994373764
+     },
+     "up to 3%": {
+      "n": 183,
+      "k": 42,
+      "rateRaw": 0.22950819672131148,
+      "rateSmoothed": 0.24072249589490968,
+      "weight": -0.5002477873972636
+     },
+     "over 3%": {
+      "n": 32,
+      "k": 4,
+      "rateRaw": 0.125,
+      "rateSmoothed": 0.20897435897435898,
+      "weight": -0.6826440825902725
+     }
+    }
+   },
+   "thirdParty": {
+    "label": "fees to third party",
+    "groups": {
+     "yes": {
+      "n": 272,
+      "k": 127,
+      "rateRaw": 0.46691176470588236,
+      "rateSmoothed": 0.4584474885844749,
+      "weight": 0.48188046120235684
+     },
+     "no": {
+      "n": 328,
+      "k": 79,
+      "rateRaw": 0.24085365853658536,
+      "rateSmoothed": 0.24674329501915707,
+      "weight": -0.4675828340944054
+     }
+    }
+   },
+   "pair": {
+    "label": "pair",
+    "groups": {
+     "stock": {
+      "n": 316,
+      "k": 134,
+      "rateRaw": 0.4240506329113924,
+      "rateSmoothed": 0.41924603174603176,
+      "weight": 0.3226054714325239
+     },
+     "ETH": {
+      "n": 284,
+      "k": 72,
+      "rateRaw": 0.2535211267605634,
+      "rateSmoothed": 0.2594298245614035,
+      "weight": -0.40045941589882805
+     }
+    }
+   }
+  }
+ },
+ "graduated": {
+  "base": 0.02,
+  "n": 600,
+  "events": 12,
+  "features": {
+   "devBuy": {
+    "label": "creator buy",
+    "groups": {
+     "over 10%": {
+      "n": 206,
+      "k": 8,
+      "rateRaw": 0.038834951456310676,
+      "rateSmoothed": 0.03716814159292035,
+      "weight": 0.6373934889781068
+     },
+     "none": {
+      "n": 96,
+      "k": 0,
+      "rateRaw": 0,
+      "rateSmoothed": 0.003448275862068966,
+      "weight": -1.7746063900018059
+     },
+     "6–10%": {
+      "n": 57,
+      "k": 2,
+      "rateRaw": 0.03508771929824561,
+      "rateSmoothed": 0.03116883116883117,
+      "weight": 0.45514852825481134
+     },
+     "under 1%": {
+      "n": 89,
+      "k": 0,
+      "rateRaw": 0,
+      "rateSmoothed": 0.003669724770642202,
+      "weight": -1.7121418412633633
+     },
+     "1–6%": {
+      "n": 152,
+      "k": 2,
+      "rateRaw": 0.013157894736842105,
+      "rateSmoothed": 0.013953488372093023,
+      "weight": -0.36615368789327674
+     }
+    }
+   },
+   "serial": {
+    "label": "serial deployer",
+    "groups": {
+     "5 or more": {
+      "n": 83,
+      "k": 3,
+      "rateRaw": 0.03614457831325301,
+      "rateSmoothed": 0.033009708737864074,
+      "weight": 0.5144335651421894
+     },
+     "2–4": {
+      "n": 111,
+      "k": 2,
+      "rateRaw": 0.018018018018018018,
+      "rateSmoothed": 0.0183206106870229,
+      "weight": -0.08941777633899273
+     },
+     "1 launch": {
+      "n": 406,
+      "k": 7,
+      "rateRaw": 0.017241379310344827,
+      "rateSmoothed": 0.017370892018779345,
+      "weight": -0.14361551169114906
+     }
+    }
+   },
+   "exempt": {
+    "label": "tax-exempt wallets",
+    "groups": {
+     "no data": {
+      "n": 262,
+      "k": 5,
+      "rateRaw": 0.019083969465648856,
+      "rateSmoothed": 0.019148936170212766,
+      "weight": 0
+     },
+     "none": {
+      "n": 234,
+      "k": 6,
+      "rateRaw": 0.02564102564102564,
+      "rateSmoothed": 0.02519685039370079,
+      "weight": 0.23630374766581186
+     },
+     "3 or more": {
+      "n": 76,
+      "k": 1,
+      "rateRaw": 0.013157894736842105,
+      "rateSmoothed": 0.014583333333333332,
+      "weight": -0.3213649413259936
+     },
+     "1–2": {
+      "n": 28,
+      "k": 0,
+      "rateRaw": 0,
+      "rateSmoothed": 0.008333333333333333,
+      "weight": -0.8873031950009032
+     }
+    }
+   },
+   "socials": {
+    "label": "socials",
+    "groups": {
+     "yes": {
+      "n": 508,
+      "k": 12,
+      "rateRaw": 0.023622047244094488,
+      "rateSmoothed": 0.023484848484848487,
+      "weight": 0.16418549965658524
+     },
+     "no": {
+      "n": 92,
+      "k": 0,
+      "rateRaw": 0,
+      "rateSmoothed": 0.0035714285714285718,
+      "weight": -1.739391483710739
+     }
+    }
+   },
+   "tax": {
+    "label": "creator fee",
+    "groups": {
+     "zero": {
+      "n": 385,
+      "k": 9,
+      "rateRaw": 0.023376623376623377,
+      "rateSmoothed": 0.023209876543209877,
+      "weight": 0.15212638763802744
+     },
+     "up to 3%": {
+      "n": 183,
+      "k": 3,
+      "rateRaw": 0.01639344262295082,
+      "rateSmoothed": 0.016748768472906402,
+      "weight": -0.18071963414462155
+     },
+     "over 3%": {
+      "n": 32,
+      "k": 0,
+      "rateRaw": 0,
+      "rateSmoothed": 0.007692307692307693,
+      "weight": -0.9679921062510455
+     }
+    }
+   },
+   "thirdParty": {
+    "label": "fees to third party",
+    "groups": {
+     "yes": {
+      "n": 272,
+      "k": 8,
+      "rateRaw": 0.029411764705882353,
+      "rateSmoothed": 0.028767123287671233,
+      "weight": 0.37248720930192203
+     },
+     "no": {
+      "n": 328,
+      "k": 4,
+      "rateRaw": 0.012195121951219513,
+      "rateSmoothed": 0.012643678160919542,
+      "weight": -0.4660533510752587
+     }
+    }
+   },
+   "pair": {
+    "label": "pair",
+    "groups": {
+     "stock": {
+      "n": 316,
+      "k": 11,
+      "rateRaw": 0.03481012658227848,
+      "rateSmoothed": 0.03392857142857143,
+      "weight": 0.5428399984305856
+     },
+     "ETH": {
+      "n": 284,
+      "k": 1,
+      "rateRaw": 0.0035211267605633804,
+      "rateSmoothed": 0.004605263157894736,
+      "weight": -1.484119266622416
+     }
+    }
+   }
+  }
+ },
+ "holdout": {
+  "folds": 4,
+  "aucMean": 0.729,
+  "aucRange": [
+   0.665,
+   0.786
+  ],
+  "brier": 0.2077,
+  "brierConst": 0.2258
+ },
+ "builtAt": "2026-09-05T23:03:02.741Z",
+ "calibration": {
+  "method": "platt",
+  "a": 0.5378,
+  "b": -0.2175,
+  "fittedOn": 4070,
+  "fittedAt": "2026-09-06T07:20:00Z",
+  "note": "fitted on live outcomes; method selected by comparison on a held-out third"
+ }
+}

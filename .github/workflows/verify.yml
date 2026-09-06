@@ -1,0 +1,31 @@
+# The repository claims a measured track record. This recomputes it on every push.
+#
+# Two things are checked. First the unit tests, which cover the invariants that
+# would silently corrupt the record if broken. Then the committed data itself:
+# every outcome must be timestamped after the prediction it scores, the metrics
+# are recomputed from the raw logs, and the AUC printed in the README has to
+# still describe them. A green check means the numbers were verified by machine,
+# not asserted by the author.
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Recompute the published track record
+        run: node scripts/verify.mjs --strict

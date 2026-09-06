@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#070806">
+<title>GRAID — autonomous token launch intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#070806;          /* warm black, not blue */
+  --paper:#e8e8dd;        /* cream, not white */
+  --muted:#85877f;
+  --dim:#5c5e58;
+  --line:#1c1e19;
+  --line-soft:#131511;
+  --acid:#a8ff62;
+  --orange:#ff653d;
+  --mono:'DM Mono', ui-monospace, monospace;
+  --sans:Inter, Arial, sans-serif;
+  --serif:'Newsreader', Georgia, serif;
+}
+*,*::before,*::after { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+body { margin:0; background:var(--ink); color:var(--paper);
+  font-family:var(--sans); font-size:14px; font-weight:400; line-height:1.5;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+
+.wrap { width:min(1180px,100%); margin:0 auto; padding:0 26px 72px; }
+
+/* ── slim telemetry bar ─────────────────────────────────────────────── */
+.hud { margin-bottom:60px; font-family:var(--mono); font-size:10.5px; font-weight:400; letter-spacing:.02em;
+  color:var(--dim); border-bottom:1px solid var(--line); padding:13px 0 12px;
+  white-space:nowrap; overflow:hidden; }
+.hud .left { float:left; overflow:hidden; text-overflow:ellipsis; max-width:62%; }
+@media (max-width:760px) { .by { display:none; } .hud .left { max-width:100%; } }
+.hud b { color:var(--paper); font-weight:500; }
+.hud .a { color:var(--acid); }
+.hud .sep { color:var(--line); padding:0 12px; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.15} }
+.hud .live { animation:pulse 2.4s ease-in-out infinite; }
+.hud b { margin:0 .1em; }
+
+/* ── hero: large serif type, weight 400, tightly stacked lines ───────── */
+.hero { margin-bottom:52px; text-align:left; }
+.eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:20px; }
+.eyebrow .a { color:var(--acid); }
+h1 em { font-style:normal; color:var(--acid); }
+h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:auto;
+  font-size:clamp(30px,3.4vw,52px); line-height:1.06; letter-spacing:-.018em;
+  color:var(--paper); text-align:left; }
+
+.lede { margin:22px 0 0; max-width:60ch; text-wrap:pretty; color:var(--muted); font-size:15px;
+  font-weight:300; line-height:1.62; }
+.lede b { color:var(--paper); font-weight:400; }
+
+
+/* ── pipeline: a diagram that doubles as a live monitor ──────────────────── */
+.heroPipe { position:relative; margin:0 -26px; padding:0; overflow:hidden; }
+#pipe { display:block; width:100%; height:min(74vh,690px); }
+.pipeText { padding:10px 26px 0; max-width:64ch; position:relative; z-index:2; }
+/* The contract strip sits between the subtitle and diagram, with enough space
+   on both sides to keep it separate from the copy and pipeline. */
+#ca { margin:46px 26px 40px; position:relative; z-index:2; }
+.pipeText h1 { font-size:clamp(28px,3.2vw,46px); }
+.pipeText .lede { margin-top:14px; max-width:52ch; font-size:14px; }
+
+.nodeBox { fill:#0d0f0b; stroke:#232620; stroke-width:1; }
+.nodeBox.core { fill:#101309; stroke:#4a6b28; stroke-width:1.8; }
+.nodeTx { font-family:'DM Mono',monospace; font-size:15px; letter-spacing:.14em;
+  text-transform:uppercase; fill:#9aa093; }
+.nodeTx.core { fill:#e8e8dd; font-size:27px; letter-spacing:.2em; }
+.nodeTx.n { font-size:12px; fill:#575a52; letter-spacing:.05em; text-transform:none; }
+
+/* Flowing wire dashes keep the diagram moving even between packets. */
+.wire { fill:none; stroke:#23261f; stroke-width:1.2; }
+.wire.flow { stroke:#4b6136; stroke-width:1.3; stroke-dasharray:4 11;
+  animation:dashrun 1.05s linear infinite; }
+@keyframes dashrun { to { stroke-dashoffset:-30; } }
+
+/* Flash a node when a packet arrives so cause and effect remain visible. */
+.nodeBox { transition:stroke .12s ease, fill .12s ease; }
+.nodeBox.lit { stroke:#a8ff62; fill:#141a0d; }
+.ring { fill:none; stroke:#a8ff62; pointer-events:none; }
+.corePulse { animation:corebeat 3.4s ease-in-out infinite; transform-origin:center; }
+@keyframes corebeat { 0%,100%{opacity:.55} 50%{opacity:1} }
+@media (prefers-reduced-motion:reduce) {
+  .wire.flow { animation:none; } .corePulse { animation:none; }
+}
+@media (max-width:900px) { #pipe { height:400px; } .pipeText { max-width:none; } }
+
+/* ── metrics row ────────────────────────────────────────────────────── */
+.figures { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  border-top:1px solid var(--line); margin-top:44px; }
+.fig { padding:22px 0 0; }
+.fig .n { font-family:var(--mono); font-weight:300; font-size:clamp(38px,5vw,68px);
+  line-height:1; letter-spacing:-.045em; }
+.fig .n.a { color:var(--acid); }
+.fig .n.o { color:var(--orange); }
+.fig .k { font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--dim); margin-top:14px; }
+.fig .s { color:var(--muted); font-size:11.5px; margin-top:5px; font-weight:300; }
+
+
+
+
+/* ── short explanation so the page does not read like an unlabeled dashboard ── */
+.about { display:grid; grid-template-columns:1fr 1fr; gap:34px 56px; padding:6px 0 4px; }
+.about p { margin:0; color:var(--muted); font-size:14px; font-weight:300; line-height:1.66; max-width:56ch; }
+.about b { color:var(--paper); font-weight:400; }
+.about .no { color:var(--dim); }
+@media (max-width:820px) { .about { grid-template-columns:1fr; gap:22px; } }
+
+
+
+/* Author links sit at the right edge of the telemetry bar: easy to find without
+   competing with the content. */
+.by { float:right; }
+.by .who { color:var(--line); padding:0 12px; }
+.by a { color:var(--dim); text-decoration:none; border-bottom:1px solid transparent;
+  transition:color .15s, border-color .15s; }
+.by a:hover { color:var(--acid); border-bottom-color:rgba(168,255,98,.4); }
+
+
+/* Token contract: visible below the metrics and copied with one click.
+   The strip stays hidden until an address is configured. */
+.ca { display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  border:1px solid var(--line); background:rgba(10,11,9,.72); backdrop-filter:blur(6px);
+  padding:15px 20px; margin:0;
+  font-family:var(--mono); cursor:pointer; transition:border-color .15s; }
+.ca:hover { border-color:rgba(168,255,98,.35); }
+.ca .lb { font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim);
+  border-right:1px solid var(--line); padding-right:18px; }
+.ca .tk { font-size:17px; color:var(--acid); letter-spacing:.04em; }
+.ca .ad { font-size:13px; color:var(--paper); word-break:break-all; }
+.ca .cp { margin-left:auto; font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--dim); white-space:nowrap; }
+.ca.done .cp { color:var(--acid); }
+/* Pre-launch placeholder: the same block, muted and non-interactive. */
+.ca.soon { border-style:dashed; }
+.ca.soon:hover { border-color:var(--line); }
+.ca.soon .tk, .ca.soon .ad { opacity:.45; }
+@media (max-width:700px) { .ca .cp { margin-left:0; } }
+
+/* ── shared section heading ─────────────────────────────────────────── */
+.rule { display:flex; align-items:baseline; gap:14px; border-top:1px solid var(--line);
+  padding-top:16px; margin:48px 0 22px; }
+.rule h2 { font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--paper); margin:0; }
+.rule .r { margin-left:auto; font-family:var(--mono); font-size:10.5px; color:var(--dim); }
+.dot { width:5px; height:5px; border-radius:50%; background:var(--acid);
+  animation:pulse 2.4s ease-in-out infinite; align-self:center; }
+
+/* ── search: rectangular controls, no rounded corners ───────────────── */
+.search { display:flex; border:1px solid var(--line); background:#0a0b09; }
+input { flex:1; min-width:0; background:transparent; border:0; color:var(--paper);
+  font-family:var(--mono); font-size:13.5px; padding:0 20px; height:60px; }
+input::placeholder { color:var(--dim); }
+input:focus { outline:none; background:#0c0d0a; }
+button { border:0; background:var(--acid); color:#0b0c0a; font-family:var(--mono);
+  font-size:11.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase;
+  padding:0 30px; height:60px; cursor:pointer; transition:background .15s; white-space:nowrap; }
+button:hover:not(:disabled) { background:#bcff85; }
+button:disabled { opacity:.35; cursor:default; }
+.hint { font-family:var(--mono); font-size:10.5px; color:var(--dim); margin-top:11px; }
+
+/* ── token card ─────────────────────────────────────────────────────── */
+.card { border:1px solid var(--line); margin-top:26px; }
+.chead { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; padding:24px 26px;
+  border-bottom:1px solid var(--line); }
+.chead .t { font-family:var(--serif); font-size:38px; line-height:1; letter-spacing:-.02em; }
+.chead .n { color:var(--muted); font-size:14px; font-weight:300; }
+.chead .ph { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted); border:1px solid var(--line); padding:4px 9px; }
+.chead .ph.pool { color:var(--acid); border-color:#2a3d19; }
+.chead .ad { margin-left:auto; font-family:var(--mono); font-size:10.5px; color:var(--dim); }
+
+.cstats { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); }
+.cs { padding:24px 26px 30px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
+.cs:last-child { border-right:0; }
+.cs .k { font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--dim); margin-bottom:14px; }
+.cs .v { font-family:var(--mono); font-weight:300; font-size:46px; line-height:1; letter-spacing:-.05em; }
+.cs .v.sm { font-size:28px; }
+.cs .x { color:var(--muted); font-size:11.5px; margin-top:9px; font-family:var(--mono); }
+.a { color:var(--acid); } .o { color:var(--orange); } .p { color:var(--paper); } .m { color:var(--muted); }
+
+.track { position:relative; height:2px; margin-top:18px; background:var(--line); }
+.track i { position:absolute; left:0; top:0; bottom:0; background:var(--acid); }
+.track b { position:absolute; top:-4px; bottom:-4px; width:1px; background:var(--muted); }
+.track span { position:absolute; top:8px; font-family:var(--mono); font-size:9px; color:var(--dim);
+  transform:translateX(-50%); white-space:nowrap; }
+
+.flags { padding:22px 26px 26px; }
+.flags .h { font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--dim); margin-bottom:16px; }
+.f { display:flex; align-items:baseline; gap:16px; padding:8px 0; border-bottom:1px solid var(--line-soft); }
+.f:last-child { border-bottom:0; }
+.f .c { font-family:var(--mono); font-size:11px; letter-spacing:.09em; color:var(--muted); min-width:210px; }
+.f .c.up { color:var(--acid); } .f .c.down { color:var(--orange); } .f .c.warn { color:var(--orange); }
+.f .m { font-family:var(--mono); font-size:11px; color:var(--dim); }
+.facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  border-top:1px solid var(--line); }
+.fa { padding:18px 26px; border-right:1px solid var(--line-soft); }
+.fa .k { font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
+.fa .v { font-family:var(--mono); font-size:17px; font-weight:300; margin-top:6px; }
+
+/* ── hourly top list ── */
+.picks { border-top:1px solid var(--line); }
+.pick { display:flex; align-items:baseline; gap:20px; padding:15px 0;
+  border-bottom:1px solid var(--line-soft); cursor:pointer; }
+.pick:last-child { border-bottom:0; }
+.pick:hover .pt { color:var(--acid); }
+.pick .pn { font-family:var(--mono); font-size:12px; color:var(--dim); width:52px; flex-shrink:0; }
+.pick .pn.y { color:var(--acid); }
+.pick .pn.n { color:var(--orange); }
+.pick .pf { font-size:10px; color:var(--dim); }
+.pick .pt { font-family:var(--mono); font-size:16px; font-weight:400; width:170px; flex-shrink:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transition:color .15s; }
+.pick .pp { font-family:var(--mono); font-size:26px; font-weight:300; letter-spacing:-.04em;
+  color:var(--acid); width:140px; flex-shrink:0; text-align:right; margin-left:auto; }
+
+/* Column header uses the same flex layout and widths as the rows. */
+.pickhead { display:flex; align-items:baseline; gap:20px; padding:0 0 10px;
+  border-bottom:1px solid var(--line); font-family:var(--mono); font-size:9.5px;
+  font-weight:400; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); }
+.pickhead span:nth-child(1) { width:52px; flex-shrink:0; }
+.pickhead span:nth-child(2) { width:170px; flex-shrink:0; }
+.pickhead span:nth-child(3) { flex:1; }
+.pickhead span:nth-child(4) { width:140px; flex-shrink:0; text-align:right; white-space:nowrap; }
+.pick .pa { margin-left:auto; }
+.pick .pf { font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--muted); flex:1; }
+.pick .pf .d { color:var(--orange); }
+.pick .pa { font-family:var(--mono); font-size:10.5px; color:var(--dim); flex-shrink:0;
+  width:196px; text-align:right; white-space:nowrap; }
+.pick .pa .hit  { color:var(--acid); }
+.pick .pa .miss { color:var(--orange); }
+.pick .pa .wait { color:var(--dim); }
+.claim { font-family:var(--mono); font-size:11px; color:var(--muted); line-height:1.7;
+  padding:18px 0 0; max-width:78ch; }
+.claim b { color:var(--acid); font-weight:400; }
+.claim .warn { color:var(--dim); }
+@media (max-width:720px){ .pick .pf, .pick .pa { display:none; } .pick .pt { width:auto; } }
+
+/* ── verdict in plain language ── */
+.verdict { padding:26px; border-bottom:1px solid var(--line); }
+.verdict .head { font-family:var(--serif); font-size:clamp(24px,2.8vw,34px); line-height:1.16;
+  letter-spacing:-.012em; margin-bottom:14px; }
+.verdict .head.bad { color:var(--orange); }
+.verdict .head.good { color:var(--acid); }
+.verdict .body { color:var(--muted); font-size:14.5px; font-weight:300; line-height:1.6; max-width:62ch; }
+.verdict .body b { color:var(--paper); font-weight:400; }
+.odds { padding:22px 26px; border-bottom:1px solid var(--line); }
+.odds .h { font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--dim); margin-bottom:16px; }
+.od { display:flex; align-items:baseline; gap:14px; padding:7px 0; flex-wrap:wrap; }
+.od .big { font-family:var(--mono); font-size:20px; font-weight:300; min-width:118px; }
+.od .txt { font-size:13.5px; color:var(--muted); font-weight:300; }
+.od .vs { font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-left:auto; }
+
+/* ── inline expansion below a row ── */
+.expand { border-left:2px solid var(--acid); background:#0a0b09; margin:0 0 6px; }
+.expand .card { border:0; margin:0; }
+.expand .loading { padding:26px; font-family:var(--mono); font-size:12px; color:var(--dim); }
+tr.expand-row > td { padding:0; border-bottom:1px solid var(--line); }
+.pick.open { border-bottom:0; }
+.pick.open .pt { color:var(--acid); }
+
+/* ── tables ─────────────────────────────────────────────────────────── */
+table { width:100%; border-collapse:collapse; }
+th { font-family:var(--mono); font-size:9.5px; font-weight:400; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--dim); text-align:left; padding:0 0 12px;
+  border-bottom:1px solid var(--line); white-space:nowrap; }
+td { font-family:var(--mono); font-size:12.5px; font-weight:300; padding:11px 0;
+  border-bottom:1px solid var(--line-soft); vertical-align:top; }
+tbody tr { cursor:pointer; }
+tbody tr:hover td { color:var(--paper); }
+th:not(:first-child), td:not(:first-child) { padding-left:22px; }
+td.tick { font-size:15px; font-weight:400; }
+td.t { color:var(--dim); }
+.sub { font-size:10px; color:var(--dim); letter-spacing:.06em; margin-top:4px; }
+.sub .u { color:var(--acid); } .sub .d { color:var(--orange); } .sub .w { color:var(--orange); }
+@keyframes fresh { from { color:var(--acid); } to {} }
+tr.new td { animation:fresh 2s ease-out; }
+
+/* ── calibration ────────────────────────────────────────────────────── */
+.cal { display:flex; align-items:center; gap:18px; padding:7px 0; font-family:var(--mono); font-size:11px; }
+.cal .b { width:80px; color:var(--muted); flex-shrink:0; }
+.cal .n { width:52px; color:var(--dim); flex-shrink:0; }
+.cal .bar { flex:1; height:14px; background:var(--line-soft); position:relative; min-width:80px; }
+.cal .bar i { position:absolute; left:0; top:0; bottom:0; background:var(--acid); opacity:.75; }
+.cal .bar i.over { background:var(--orange); opacity:.7; }
+.cal .bar b { position:absolute; top:-3px; bottom:-3px; width:1px; background:var(--paper); }
+.cal .v { width:150px; text-align:right; color:var(--dim); flex-shrink:0; }
+.note { font-family:var(--mono); font-size:10.5px; color:var(--dim); line-height:1.7; margin-top:18px; max-width:80ch; }
+
+.wait { padding:14px 0 22px; font-family:var(--mono); font-size:12px; color:var(--dim); line-height:2; }
+.wait b { color:var(--paper); font-weight:400; }
+.err { padding:26px; color:var(--orange); font-family:var(--mono); font-size:12px; }
+footer { border-top:1px solid var(--line); margin-top:72px; padding-top:22px;
+  font-family:var(--mono); font-size:10.5px; color:var(--dim); line-height:1.9; max-width:88ch; }
+footer b { color:var(--muted); font-weight:400; }
+@media (max-width:720px) {
+  .cs { border-right:0; } .fa { border-right:0; }
+  .hideSm { display:none; } .f .c { min-width:0; }
+  .cal .v { display:none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hud">
+    <span class="by">
+      <a href="https://x.com/0x_fokki" target="_blank" rel="noopener">x.com/0x_fokki</a>
+      <span class="who">/</span>
+      <a href="https://github.com/0xfokki" target="_blank" rel="noopener">github.com/0xfokki</a>
+    </span>
+    <span class="left" id="hud">connecting…</span>
+  </div>
+
+  <div class="hero heroPipe">
+    <div class="pipeText">
+    <div class="eyebrow"><span class="a">◈</span> on-chain intelligence</div>
+      <h1>Real-time AI intelligence for <em>token launches</em></h1>
+      <p class="lede">
+        GRAID is an autonomous on-chain agent that scores every token launch before the
+        outcome exists — then returns to verify whether it graduated.
+      </p>
+    </div>
+    <div id="ca"></div>
+    <svg id="pipe"></svg>
+  </div>
+  <div class="figures" id="figures"></div>
+
+
+
+  <div class="rule"><h2>what this is</h2></div>
+  <div class="about">
+    <p>GRAID is an autonomous analyst that does not sleep. It watches every launch on Robinhood Chain,
+    reads it straight off the chain the second it lands, and scores it with a model initially
+    fitted on 600 launches and calibrated against thousands of live outcomes. <b>The guess is written down before the answer
+    exists.</b></p>
+    <p>Two hours later the agent goes back, checks what actually happened, and updates its own
+    hit rate in public — misses included. Nobody edits the record and nobody picks the examples.
+    <span class="no">It does not trade, never touches a wallet, and does not predict price: only
+    whether a launch gains real traction.</span></p>
+  </div>
+
+  <div class="rule"><h2>look up any token</h2></div>
+  <div class="search">
+    <input id="q" placeholder="contract address or ticker" autocomplete="off" spellcheck="false">
+    <button id="go">analyze</button>
+  </div>
+  <div id="out"></div>
+
+  <div class="rule"><span class="dot"></span><h2>launching right now</h2><span class="r" id="livemeta"></span></div>
+  <div id="live"><div class="wait">waiting for launches…</div></div>
+
+  <div class="rule"><span class="dot"></span><h2>migrated <span style="color:var(--dim);font-weight:400;letter-spacing:.05em;text-transform:none">— filled the curve and opened a Uniswap pool</span></h2><span class="r" id="gradmeta"></span></div>
+  <div id="grad"><div class="wait">loading…</div></div>
+
+  <div class="rule"><span class="dot"></span><h2>track record</h2><span class="r" id="bcnt"></span></div>
+  <div id="board"><div class="wait">loading…</div></div>
+
+  <footer>
+    Read directly from Robinhood Chain, chain id 4663. <b>Traction</b> means outside money — buys that are not
+    part of the launch transaction, not from the deployer, and not from a wallet he declared tax-exempt — reaches
+    a tenth of the migration threshold within two hours. Not a prediction that the price goes up.
+
+  </footer>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const pct = (x) => (x * 100).toFixed(x < 0.01 ? 2 : 1) + "%";
+const esc = (s) => String(s ?? "").replace(/[<>&]/g, (c) => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;" }[c]));
+const cl = (l) => (l > 1.25 ? "a" : l < 0.55 ? "o" : l < 0.85 ? "m" : "p");
+const num = (n) => Number(n).toLocaleString("en-US");
+/* Some tickers contain only emoji, which render as images and break the row.
+   Strip pictographs specifically, not all non-Latin text: Chinese, Japanese,
+   and other writing systems remain readable and should be preserved. */
+const EMOJI = new RegExp(
+  "[" + "\u{1F000}-\u{1FAFF}" + "\u{2600}-\u{27BF}" +
+  "\u{FE00}-\u{FE0F}" + "\u{1F1E6}-\u{1F1FF}" +
+  "\u{2190}-\u{21FF}" + "\u{2B00}-\u{2BFF}" + "\u{200D}" + "]", "gu");
+function tick(sym, token) {
+  const clean = String(sym ?? "").replace(EMOJI, "").trim();
+  return clean ? clean.slice(0, 16) : (token ? token.slice(0, 8) + "…" : "?");
+}
+
+
+/* ── telemetry bar and metrics ── */
+async function hud() {
+  let s; try { s = await (await fetch("/api/status")).json(); }
+  catch { $("#hud").innerHTML = `<span class="o">◼</span>&nbsp;<b>OFFLINE</b>`; return; }
+  $("#hud").innerHTML =
+    `<span class="a live">◼</span>&nbsp;live<span class="sep">/</span>` +
+    `block <b>${num(s.block)}</b><span class="sep">/</span>` +
+    `<b>${s.perMin}</b> per min<span class="sep">/</span>` +
+    `<b>${num(s.logged)}</b> logged`;
+  const F = (n, k, acid) =>
+    `<div class="fig"><div class="n ${acid ? "a" : ""}">${n}</div><div class="k">${k}</div></div>`;
+  // Show live numbers here rather than training figures: they are both more
+  // honest and more compelling. Holdout results belong below the scoreboard.
+  const L = window.__live;
+  $("#figures").innerHTML = L && L.resolved
+    ? F(L.auc.toFixed(3), "auc, live", true) +
+      F(num(L.resolved), "predictions scored") +
+      F(L.hit == null ? "—" : pct(L.hit), "hit rate, top 10%") +
+      F(pct(L.eventRate), "base rate")
+    : F(s.holdout.aucMean.toFixed(3), "auc, out of sample", true) +
+       F(num(s.analyzed ?? s.logged), "launches analyzed") +
+       F(num(s.resolved), "predictions scored") +
+       F(pct(s.base), "training base rate");
+}
+hud(); setInterval(hud, 5000);
+
+function trackBar(p, base) {
+  const max = Math.max(base * 3, p * 1.15, 1e-6);
+  return `<div class="track"><i style="width:${Math.min(p/max,1)*100}%"></i>
+    <b style="left:${Math.min(base/max,1)*100}%"></b>
+    <span style="left:${Math.min(base/max,1)*100}%">usual ${pct(base)}</span></div>`;
+}
+const statCell = (k, s) => `<div class="cs"><div class="k">${k}</div>
+  <div class="v ${cl(s.lift)}">${pct(s.p)}</div>
+  <div class="x">×${s.lift.toFixed(2)} the usual rate</div>${trackBar(s.p, s.base)}</div>`;
+
+// A near-zero-weight flag explains nothing: "deployer x2, 35% vs 34%" looks
+// causal even though it is noise. Hide anything that barely moves the odds.
+const MEANINGFUL = 0.15;
+const strong = (fl) => (fl || []).filter(f =>
+  f.dir === "warn" || f.note == null || Math.abs(Math.log(
+    (parseFloat(f.note) / 100) / (parseFloat(f.note.split("vs")[1]) / 100))) >= MEANINGFUL);
+const rateOf = (f) => f.note ? parseFloat(f.note) : null;
+const baseOf = (fl) => { for (const f of fl) if (f.note && f.note.includes("vs")) return parseFloat(f.note.split("vs")[1]); return null; };
+const flagRows = (fl0) => {
+  const fl = strong(fl0);
+  if (!fl.length) return `<div class="f"><span class="m">nothing stands out</span></div>`;
+  const base = baseOf(fl);
+  // Put the strongest signal first.
+  const sorted = [...fl].sort((a, b) => {
+    const da = rateOf(a) == null ? -1 : Math.abs(rateOf(a) - base);
+    const db = rateOf(b) == null ? -1 : Math.abs(rateOf(b) - base);
+    return db - da;
+  });
+  return sorted.map(f => {
+    const r = rateOf(f);
+    return `<div class="f"><span class="c ${f.dir}">${esc(f.text)}</span>
+      <span class="m">${r == null ? "" : r.toFixed(0) + "%"}</span></div>`;
+  }).join("");
+};
+const flagSub = (fl0) => { const fl = strong(fl0); return !fl.length ? "" :
+  `<div class="sub">` + fl.slice(0,3).map(f => `<span class="${{up:"u",down:"d",warn:"w",flat:""}[f.dir]}">${esc(f.text)}</span>`).join(" / ") + `</div>`; };
+
+/* "59.8%" is abstract; "6 in 10" is immediately understandable. */
+const odds = (p) => p >= 0.15 ? `${Math.round(p * 10)} in 10` : `1 in ${Math.max(2, Math.round(1 / p))}`;
+const hrs = (m) => m == null ? "" : m < 90 ? `${Math.round(m)} minutes` : `${(m / 60).toFixed(1)} hours`;
+
+/* For a token older than the observation window, show the outcome rather than
+   a forecast: the answer is already known, so a probability would mislead. */
+function verdict(r) {
+  const OBS = 120;                       // observation window, minutes
+  const age = r.ageMin, moved = (r.progressPct ?? 0) > 0.05;
+  if (r.phase === 2)
+    return { tone:"good", head:"It migrated.",
+      body:`This one filled its curve and opened a Uniswap v4 pool.
+      About one launch in fifty gets that far.` };
+  if (r.phase === 1)
+    return { tone:"", head:"Mid-migration.",
+      body:`The curve is closed and the money is on its way to a pool. Nothing trades right now.` };
+  if (age != null && age > OBS && !moved)
+    return { tone:"bad", head:"Nobody bought in.",
+      body:`It has been on the curve for <b>${hrs(age)}</b> and not one purchase has come from anyone but the creator. The window this model looks at — the first two hours — closed long ago. Launches this quiet almost never recover.` };
+  if (age != null && age > OBS && moved)
+    return { tone:"", head:`Money came in, then stalled.`,
+      body:`Outside buyers did show up, and the curve is <b>${(r.progressPct).toFixed(1)}%</b> of the way to a pool after <b>${hrs(age)}</b>. It needs 100% to graduate, and most launches stop where this one has.` };
+  const p = r.scores.outside.p;
+  const tone = p > 0.5 ? "good" : p < 0.2 ? "bad" : "";
+  const head = p > 0.5 ? "Better odds than most." : p < 0.2 ? "Odds look poor." : "About average.";
+  return { tone, head,
+    body:`Launches that looked like this one at the starting line drew a buyer from outside in <b>${odds(p)}</b> cases. The typical launch manages <b>${odds(r.scores.outside.base)}</b>. It is <b>${hrs(age)}</b> old, so the answer is still open.` };
+}
+
+let cardSeq = 0, lastFid = "";
+function renderOne(r) {
+  const fid = lastFid = "flags" + (++cardSeq);
+  const s = r.scores;
+  const age = r.ageMin == null ? null : r.ageMin < 90 ? `${r.ageMin.toFixed(0)} min` : `${(r.ageMin/60).toFixed(1)} h`;
+  const v = verdict(r);
+  const stale = r.ageMin != null && r.ageMin > 120 && r.phase === 0;
+  const FA = (k, v) => v == null || v === "" ? "" : `<div class="fa"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  return `<div class="card">
+    <div class="chead">
+      <div class="t">$${esc(tick(r.symbol, r.token))}</div><div class="n">${esc(r.name)}</div>
+      <div class="ph ${r.phase === 2 ? "pool" : ""}">${esc(r.phaseName)}</div>
+      <div class="ad">${esc(r.token)}</div>
+    </div>
+    <div class="verdict">
+      <div class="head ${v.tone}">${v.head}</div>
+      <div class="body">${v.body}</div>
+    </div>
+    <div class="flags" id="${fid}"><div class="h">what we can see <span style="color:var(--dim);letter-spacing:.05em;text-transform:none">— share of launches like this that drew money, against 34% typical</span></div>${flagRows(r.flags)}</div>
+  </div>`;
+}
+
+const renderMany = (d) => !d.hits.length
+  ? `<div class="card err">Nothing found. Try a contract address — those are read straight from the chain.</div>`
+  : `<div class="card"><div class="chead"><div class="t" style="font-size:22px">${d.hits.length} matches</div>
+      <div class="n">${esc(d.note)}</div></div>
+     <div style="padding:18px 26px"><table><tbody>${d.hits.map(h => `<tr data-a="${h.token}">
+       <td class="tick">$${esc(h.symbol)}</td><td>${esc(h.name)}</td>
+       <td class="t">${h.phase === 2 ? "in pool" : "on curve"}</td>
+       <td class="t">${(h.progressPct ?? 0).toFixed(1)}% filled</td>
+       <td class="t">${h.token.slice(0,12)}…</td></tr>`).join("")}</tbody></table></div></div>`;
+
+async function render(q, box, placeholderCls) {
+  box.innerHTML = `<div class="${placeholderCls}">reading the chain…</div>`;
+  const d = await (await fetch("/api/predict?q=" + encodeURIComponent(q))).json();
+  box.innerHTML = d.kind === "one" ? renderOne(d.row)
+    : d.kind === "many" ? renderMany(d) : `<div class="card err">${esc(d.error)}</div>`;
+  // Curve history loads separately because it is slow; do not hold the card.
+  // Capture fid immediately after rendering because it is not visible outside.
+  if (d.kind === "one") {
+    const fid = lastFid;
+    const b = document.getElementById(fid);
+    if (b) b.insertAdjacentHTML("beforeend", `<div class="f"><span class="m">reading curve history…</span></div>`);
+    fetch("/api/activity?token=" + encodeURIComponent(d.row.token)).then(r => r.json()).then(a => {
+      const x = document.getElementById(fid); if (!x || !a.flags) return;
+      x.innerHTML = `<div class="h">what we can see <span style="color:var(--dim);letter-spacing:.05em;text-transform:none">— share of launches like this that drew money, against 34% typical</span></div>` + flagRows(a.flags)
+        + (a.complete ? "" : `<div class="f"><span class="m">curve history partial — only the last stretch was read</span></div>`);
+    }).catch(() => {});
+  }
+  return d;
+}
+
+async function run() {
+  const q = $("#q").value.trim(); if (!q) return;
+  $("#go").disabled = true;
+  closeExpanded();
+  try { await render(q, $("#out"), "card loading"); }
+  catch (e) { $("#out").innerHTML = `<div class="card err">${esc(e.message)}</div>`; }
+  $("#go").disabled = false;
+}
+$("#go").onclick = run;
+$("#q").onkeydown = (e) => { if (e.key === "Enter") run(); };
+/* Expand the card directly below its row. The old behavior copied the address
+   into search and jumped upward, making users lose their place. */
+function closeExpanded() {
+  document.querySelectorAll(".expand, .expand-row").forEach((e) => e.remove());
+  document.querySelectorAll(".pick.open").forEach((e) => e.classList.remove("open"));
+  if (typeof livePending !== "undefined" && livePending) drawLive();
+}
+document.addEventListener("click", async (e) => {
+  const row = e.target.closest("[data-a]");
+  if (!row) return;
+  const already = row.nextElementSibling &&
+    (row.nextElementSibling.classList.contains("expand") || row.nextElementSibling.classList.contains("expand-row"));
+  closeExpanded();
+  if (already) return;                       // A second click simply closes it.
+
+  let box;
+  if (row.tagName === "TR") {                // A div cannot be inserted directly into a table.
+    const tr = document.createElement("tr");
+    tr.className = "expand-row";
+    const td = document.createElement("td");
+    td.colSpan = row.children.length;
+    const d = document.createElement("div");
+    d.className = "expand";
+    td.appendChild(d); tr.appendChild(td);
+    row.after(tr);
+    box = d;
+  } else {
+    box = document.createElement("div");
+    box.className = "expand";
+    row.classList.add("open");
+    row.after(box);
+  }
+  try { await render(row.dataset.a, box, "loading"); }
+  catch (err) { box.innerHTML = `<div class="loading">${esc(err.message)}</div>`; }
+});
+
+/* ── migrated to a pool ── */
+async function graduated() {
+  let d; try { d = await (await fetch("/api/graduated")).json(); } catch { return; }
+  if (!d.list || !d.list.length) { $("#grad").innerHTML = `<div class="wait">no graduations recorded yet.</div>`; return; }
+  const st = d.stats;
+  // Label the sorting so this is a transparent sample, not a substitute for the whole set.
+  $("#gradmeta").textContent = `${num(d.ours)} scored · what we said at launch · highest first`;
+  const rows = d.list.slice(0, 8).map((v) => `<div class="pick" data-a="${v.token}">
+      <span class="pn y">◆</span>
+      <span class="pt">$${esc(tick(v.symbol, v.token))}</span>
+      <span class="pp ${cl(v.p / 0.328)}">${pct(v.p)}</span>
+      <span class="pa"><span class="hit">migrated</span></span></div>`).join("");
+  const claim = !st ? "" :
+    `<b>${num(d.ours)}</b> launches we had already scored have since migrated — filled their curve and
+     opened a Uniswap v4 pool. Rate a launch above <b>65%</b> and its odds of getting there run
+     <b>${st.lift.toFixed(1)}×</b> those of one we rate low, measured over ${num(st.mature)} scored launches.`;
+  $("#grad").innerHTML = `<div class="picks">${rows}</div><div class="claim">${claim}</div>`;
+}
+graduated(); setInterval(graduated, 120000);
+
+/* ── token contract ─────────────────────────────────────────────────────────
+   THE ONLY PLACE THIS CHANGES. Add the address and ticker after launch and the
+   strip appears automatically. When empty, the block is not rendered. */
+const TOKEN = { ticker: "GRAID", address: "0x0000000000000000000000000000000000000000", soon: true };
+
+(function contract() {
+  if (!TOKEN.address) return;
+  const box = $("#ca");
+  box.className = "ca";
+  box.innerHTML = `<span class="lb">official ca</span>
+    <span class="tk">$${esc(TOKEN.ticker)}</span>
+    <span class="ad">${esc(TOKEN.address)}</span>
+    <span class="cp">${TOKEN.soon ? "not live yet" : "click to copy"}</span>`;
+  if (TOKEN.soon) { box.style.cursor = "default"; box.classList.add("soon"); return; }
+  box.onclick = async () => {
+    try { await navigator.clipboard.writeText(TOKEN.address); }
+    catch { const t = document.createElement("textarea"); t.value = TOKEN.address;
+      document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+    box.classList.add("done");
+    box.querySelector(".cp").textContent = "copied";
+    setTimeout(() => { box.classList.remove("done");
+      box.querySelector(".cp").textContent = "click to copy"; }, 1600);
+  };
+})();
+
+/* ── public track record ── */
+async function board() {
+  let b; try { b = await (await fetch("/api/scoreboard")).json(); } catch { return; }
+  // Pass the figures to the header instead of duplicating them here.
+  window.__live = { auc: b.auc, resolved: b.resolved, eventRate: b.eventRate,
+    hit: b.topDecile && b.topDecile.hitRate };
+  if (!b.resolved) {
+    $("#board").innerHTML = `<div class="wait">
+      <b>${num(b.made)}</b> predictions written down, none scored yet.<br>
+      Each is scored two hours after the launch it describes.</div>`;
+    return;
+  }
+  const rows = b.calibration.map(c => `<div class="cal">
+    <div class="b">${(c.lo*100).toFixed(0)}–${Math.min(c.hi,1)*100|0}%</div>
+    <div class="n">n=${c.n}</div>
+    <div class="bar"><i class="${c.actual < c.said ? "over" : ""}" style="width:${Math.min(c.actual,1)*100}%"></i>
+      <b style="left:${Math.min(c.said,1)*100}%"></b></div>
+    <div class="v">said ${pct(c.said)} → was ${pct(c.actual)}</div></div>`).join("");
+  $("#board").innerHTML = `<div>${rows}
+    <div class="note">The bar is what happened; the pale tick is what we said.
+    <b style="color:var(--acid)">Green</b> — the bar overshot the tick, we were too cautious.
+    <b style="color:var(--orange)">Orange</b> — it fell short, we claimed more than we delivered.
+    Brier <b>${b.brier.toFixed(3)}</b> against <b>${b.brierBase.toFixed(3)}</b> for always guessing the base rate.</div></div>`;
+}
+board(); setInterval(board, 30000);
+
+/* ── launches happening now ─────────────────────────────────────────────────
+   The ten latest launches with our score. Every row is a claim that will be
+   checked two hours later. */
+const liveRows = [];
+let livePending = false;
+function drawLive() {
+  if (!liveRows.length) return;
+  // Do not redraw while a card is expanded; otherwise a new launch replaces it
+  // after a few seconds and the card closes by itself.
+  if (document.querySelector("#live .expand")) { livePending = true; return; }
+  livePending = false;
+  $("#livemeta").textContent = "traction = outside buyers reach 10% of the migration threshold within 2h · base rate: 34%";
+  $("#live").innerHTML = '<div class="pickhead"><span>time</span><span>token</span>'
+    + '<span>what we see</span><span>traction chance</span></div>'
+    + '<div class="picks" style="border-top:0">' + liveRows.slice(0, 10).map((r) => {
+    const t = r.scores.outside;
+    const fl = (r.flags ?? []).slice(0, 3)
+      .map(f => `<span class="${f.dir === "down" || f.dir === "warn" ? "d" : ""}">${esc(f.text)}</span>`).join(" · ");
+    // Use the space freed by the removed countdown column for signal flags.
+    return `<div class="pick" data-a="${r.token}">
+      <span class="pn">${new Date(r.at).toLocaleTimeString("en-GB").slice(0, 5)}</span>
+      <span class="pt">$${esc(tick(r.symbol, r.token))}</span>
+      <span class="pf">${fl}</span>
+      <span class="pp ${cl(t.lift)}">${pct(t.p)}</span></div>`;
+  }).join("") + "</div>";
+}
+setInterval(drawLive, 20000);
+
+const es = new EventSource("/api/feed");
+es.onmessage = (e) => {
+  const d = JSON.parse(e.data);
+  if (d.hello) liveRows.push(...d.feed); else liveRows.unshift(d);
+  if (liveRows.length > 40) liveRows.length = 40;
+  drawLive();
+};
+
+/* ── pipeline ───────────────────────────────────────────────────────────────
+   Structure and paths use SVG. Packets are SVG circles with radial fills
+   instead of filters, since filters on hundreds of elements hurt frame rate.
+   Motion combines flowing wire dashes, packet trails, and a slowly pulsing core. */
+(function pipe() {
+  var svg = document.getElementById("pipe");
+  if (!svg) return;
+  var NS = "http://www.w3.org/2000/svg";
+  var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var W = 1400, H = 700;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+  var IN = [
+    ["launch event", "TokenLaunched log"],
+    ["creator buy", "from the launch tx"],
+    ["deployer history", "rolling hour"],
+    ["socials · fees · pair", "token record"]
+  ];
+  var OUT = [
+    ["money came", "#a8ff62", "outside buyers showed up"],
+    ["nothing came", "#ff653d", "the curve stayed empty"],
+    ["still waiting", "#6f7268", "inside the two-hour window"]
+  ];
+
+  function mk(t, a) { var e = document.createElementNS(NS, t); for (var k in a) e.setAttribute(k, a[k]); return e; }
+
+  // ── glows and fills ─────────────────────────────────────────────────────
+  var defs = mk("defs", {});
+  function glow(id, col, mid) {
+    var g = mk("radialGradient", { id: id });
+    g.appendChild(mk("stop", { offset: "0%", "stop-color": col, "stop-opacity": mid || ".55" }));
+    g.appendChild(mk("stop", { offset: "55%", "stop-color": col, "stop-opacity": ".10" }));
+    g.appendChild(mk("stop", { offset: "100%", "stop-color": col, "stop-opacity": "0" }));
+    defs.appendChild(g);
+  }
+  glow("gCore", "#a8ff62", ".38");
+  glow("gLime", "#a8ff62", "1");
+  glow("gRed", "#ff653d", "1");
+  glow("gGrey", "#9aa093", "1");
+  svg.appendChild(defs);
+
+  var gGlow = mk("g", {}), gW = mk("g", {}), gN = mk("g", {}), gP = mk("g", {});
+  svg.appendChild(gGlow); svg.appendChild(gW); svg.appendChild(gN); svg.appendChild(gP);
+
+  var inX = 18, inW = 288, CX = 462, CW = 300, CH = 208, CY = H / 2 - 104;
+  var outX = W - 302, outW = 284;
+
+  // Soft green glow behind the core, adapted from the reference.
+  gGlow.appendChild(mk("circle", { cx: CX + CW / 2, cy: CY + CH / 2, r: 340,
+    fill: "url(#gCore)", "class": still ? "" : "corePulse" }));
+
+  function box(x, y, w, h, label, sub, cls) {
+    var g = mk("g", {});
+    var big = (cls || "").indexOf("core") >= 0;
+    // Center both text lines on the card axis.
+    var rx = big ? 44 : h / 2;
+    g.appendChild(mk("rect", { x: x, y: y, width: w, height: h, rx: rx,
+      "class": "nodeBox " + (cls || "") }));
+    var tx = mk("text", { x: x + w / 2, y: y + (sub ? h / 2 - (big ? 10 : 5) : h / 2 + 5),
+      "text-anchor": "middle", "class": "nodeTx " + (cls || "") });
+    tx.textContent = label; g.appendChild(tx);
+    if (sub) { var s = mk("text", { x: x + w / 2, y: y + h / 2 + (big ? 24 : 17),
+      "text-anchor": "middle", "class": "nodeTx n" }); s.textContent = sub; g.appendChild(s); }
+    return g;
+  }
+
+  var ins = [], outs = [];
+  IN.forEach(function (row, i) {
+    var y = 44 + i * 152;
+    var bIn = box(inX, y, inW, 96, row[0], row[1]);
+    gN.appendChild(bIn);
+    var d = "M " + (inX + inW) + " " + (y + 48) + " C " + (inX + inW + 120) + " " + (y + 31) +
+            ", " + (CX - 120) + " " + (CY + CH / 2) + ", " + CX + " " + (CY + CH / 2);
+    gW.appendChild(mk("path", { d: d, "class": "wire" }));
+    var f = mk("path", { d: d, "class": "wire flow", style: "animation-delay:" + (i * 0.28) + "s" });
+    gW.appendChild(f);
+    ins.push({ el: f, from: bIn.querySelector("rect"), to: null });
+  });
+
+  var coreBox = box(CX, CY, CW, CH, "score", "seven measured features", "core");
+  gN.appendChild(coreBox);
+  var coreRect = coreBox.querySelector("rect");
+  ins.forEach(function (w) { w.to = coreRect; });
+  var wX = CX + CW + 62, wW = 186;
+  gN.appendChild(box(wX, CY + 56, wW, 96, "write it down", "before the answer"));
+  var dMid = "M " + (CX + CW) + " " + (CY + CH / 2) + " L " + wX + " " + (CY + 104);
+  gW.appendChild(mk("path", { d: dMid, "class": "wire" }));
+  gW.appendChild(mk("path", { d: dMid, "class": "wire flow" }));
+
+  var midX = wX + wW;
+  OUT.forEach(function (row, i) {
+    var y = 74 + i * 202;
+    var g = box(outX, y, outW, 96, row[0], row[2]);
+    g.querySelector("rect").setAttribute("stroke", i === 2 ? "#232620" : row[1] + "4a");
+    g.querySelector("text").setAttribute("fill", row[1]);
+    gN.appendChild(g);
+    var d = "M " + midX + " " + (CY + 104) + " C " + (midX + 90) + " " + (CY + 104) +
+            ", " + (outX - 90) + " " + (y + 48) + ", " + outX + " " + (y + 48);
+    gW.appendChild(mk("path", { d: d, "class": "wire" }));
+    var f = mk("path", { d: d, "class": "wire flow", style: "animation-delay:" + (i * 0.4) + "s" });
+    gW.appendChild(f);
+    outs.push({ el: f, colour: row[1], to: g.querySelector("rect"),
+      grad: i === 0 ? "gLime" : i === 1 ? "gRed" : "gGrey" });
+  });
+
+  // ── packets with trails ─────────────────────────────────────────────────
+  var packets = [], TRAIL = 4;
+  function spawn(side, which) {
+    var set = side === "in" ? ins : outs;
+    var w = which != null ? set[which] : set[(Math.random() * set.length) | 0];
+    var grad = w.grad || "gGrey";
+    var parts = [];
+    for (var i = 0; i < TRAIL; i++) {
+      var c = mk("circle", { r: 11 - i * 1.9, fill: "url(#" + grad + ")", opacity: 0 });
+      gP.appendChild(c); parts.push(c);
+    }
+    if (w.from) flash(w.from);
+    packets.push({ parts: parts, path: w.el, len: w.el.getTotalLength(), to: w.to,
+      t: -0.02, sp: 0.0090 + Math.random() * 0.0040 });
+    if (packets.length > 220) {
+      var old = packets.shift();
+      old.parts.forEach(function (e) { e.remove(); });
+    }
+  }
+
+  var litTimers = new WeakMap();
+  function flash(rect) {
+    if (!rect) return;
+    rect.classList.add("lit");
+    clearTimeout(litTimers.get(rect));
+    litTimers.set(rect, setTimeout(function () { rect.classList.remove("lit"); }, 190));
+  }
+  // An occasional expanding ring adds a larger gesture above the small motion.
+  function ring() {
+    var c = mk("circle", { cx: CX + CW / 2, cy: CY + CH / 2, r: CW / 2,
+      "class": "ring", "stroke-width": 1.4, opacity: 0.5 });
+    gGlow.appendChild(c);
+    var t0 = performance.now();
+    (function grow(now) {
+      var k = (now - t0) / 2100;
+      if (k >= 1) { c.remove(); return; }
+      c.setAttribute("r", CW / 2 + k * 300);
+      c.setAttribute("opacity", (1 - k) * 0.38);
+      c.setAttribute("stroke-width", 1.4 * (1 - k * 0.6));
+      requestAnimationFrame(grow);
+    })(t0);
+  }
+
+  var last = performance.now();
+  function tick(now) {
+    var dt = Math.min(64, now - last); last = now;
+    for (var i = packets.length - 1; i >= 0; i--) {
+      var p = packets[i];
+      p.t += p.sp * (dt / 16);
+      if (p.t >= 1 && !p.hit) { p.hit = 1; flash(p.to); }
+      if (p.t >= 1.05) { p.parts.forEach(function (e) { e.remove(); }); packets.splice(i, 1); continue; }
+      for (var j = 0; j < p.parts.length; j++) {
+        var tj = p.t - j * 0.018;
+        if (tj < 0 || tj > 1) { p.parts[j].setAttribute("opacity", 0); continue; }
+        var pt = p.path.getPointAtLength(tj * p.len);
+        p.parts[j].setAttribute("cx", pt.x);
+        p.parts[j].setAttribute("cy", pt.y);
+        var fade = tj < 0.10 ? tj / 0.10 : tj > 0.90 ? (1 - tj) / 0.10 : 1;
+        p.parts[j].setAttribute("opacity", fade * (j === 0 ? 0.95 : 0.4 - j * 0.09));
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  if (!still) {
+    requestAnimationFrame(tick);
+    // Keep motion continuous regardless of current network activity. Live
+    // launches add extra packets and make the flow denser.
+    setInterval(function () { spawn("in"); }, 150);
+    setInterval(function () { spawn("out"); }, 300);
+    setInterval(ring, 2600);
+    ring();
+    try {
+      var es2 = new EventSource("/api/feed");
+      es2.onmessage = function (e) {
+        var d = JSON.parse(e.data);
+        if (!d.hello) { spawn("in"); setTimeout(function () { spawn("in"); }, 120); }
+      };
+    } catch (err) {}
+  }
+
+  fetch("/api/scoreboard").then(function (r) { return r.json(); }).then(function (b) {
+    var n = document.getElementById("pipeN");
+    if (n) n.textContent = num(b.resolved);
+    if (still) return;
+    var rate = b.eventRate == null ? 0.33 : b.eventRate;
+    // The green share on the right matches the measured event rate.
+    setInterval(function () {
+      var r = Math.random();
+      spawn("out", r < rate ? 0 : r < 0.93 ? 1 : 2);
+    }, 380);
+  }).catch(function () {});
+})();
+
+</script>
+</body>
+</html>
