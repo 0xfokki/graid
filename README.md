@@ -94,7 +94,7 @@ The model measures seven features available when the launch appears:
 | Fee destination | Whether fees are routed to the deployer or a third party |
 | Pair type | Whether the curve is paired with ETH or a stock token |
 
-The model was initially fitted on 600 historical launches. It combines empirical feature rates in log-odds space and applies Platt calibration against thousands of resolved live outcomes. The implementation is intentionally inspectable: see [`src/model.mjs`](src/model.mjs).
+The model combines empirical feature rates in log-odds space and applies Platt calibration against thousands of resolved live outcomes. The implementation is intentionally inspectable: see [`src/model.mjs`](src/model.mjs).
 
 ## Public track record
 
@@ -213,7 +213,7 @@ The agent is designed to make hindsight manipulation difficult:
 
 ## Limitations
 
-- The initial feature-rate fit used 600 launches from four time windows on a single day; the 15K+ figure refers to launches scored live, not the training-set size.
+- The initial feature-rate fit used a sample drawn from four time windows on a single day; the 15K+ figure refers to launches scored live, not the training-set size.
 - It has limited evidence across major market-regime changes.
 - Naive Bayes can double-count correlated signals and overstate confidence.
 - The migration model is based on far fewer positive examples than the traction model.
