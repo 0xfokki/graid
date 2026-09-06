@@ -1,4 +1,6 @@
-<h1 align="center">GRAID</h1>
+<p align="center">
+  <img src="assets/banner.png" alt="GRAID" width="100%">
+</p>
 
 <p align="center">
   <strong>An autonomous AI agent for real-time token launch intelligence.</strong>
