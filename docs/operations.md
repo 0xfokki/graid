@@ -6,7 +6,7 @@ One long-lived Node process does all of it:
 
 1. subscribes to `TokenLaunched` from the pons v2 factory on Robinhood Chain
 2. reads the launch context on chain, scores it, and appends the prediction
-3. queues the token for resolution two hours later
+3. queues the token for resolution once its observation window has closed
 4. re-reads the curve after the window closes and appends the outcome
 5. recomputes the public metrics from those two files
 

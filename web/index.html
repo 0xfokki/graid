@@ -346,7 +346,7 @@ footer b { color:var(--muted); font-weight:400; }
     reads it straight off the chain the second it lands, and scores it with a model initially
     fitted on 600 launches and calibrated against thousands of live outcomes. <b>The guess is written down before the answer
     exists.</b></p>
-    <p>Two hours later the agent goes back, checks what actually happened, and updates its own
+    <p>Later the agent goes back, checks what actually happened, and updates its own
     hit rate in public — misses included. Nobody edits the record and nobody picks the examples.
     <span class="no">It does not trade, never touches a wallet, and does not predict price: only
     whether a launch gains real traction.</span></p>
@@ -371,7 +371,7 @@ footer b { color:var(--muted); font-weight:400; }
   <footer>
     Read directly from Robinhood Chain, chain id 4663. <b>Traction</b> means outside money — buys that are not
     part of the launch transaction, not from the deployer, and not from a wallet the deployer declared
-    tax-exempt. It counts when those buys reach a tenth of the migration threshold within two hours. Not a prediction that the price goes up.
+    tax-exempt. It counts when those buys reach a tenth of the migration threshold inside a fixed window measured from launch. Not a prediction that the price goes up.
 
   </footer>
 </div>
@@ -476,7 +476,7 @@ function verdict(r) {
       body:`The curve is closed and the money is on its way to a pool. Nothing trades right now.` };
   if (age != null && age > OBS && !moved)
     return { tone:"bad", head:"Nobody bought in.",
-      body:`It has been on the curve for <b>${hrs(age)}</b> and not one purchase has come from anyone but the creator. The window this model looks at — the first two hours — closed long ago. Launches this quiet almost never recover.` };
+      body:`It has been on the curve for <b>${hrs(age)}</b> and not one purchase has come from anyone but the creator. The window this model looks at closed long ago. Launches this quiet almost never recover.` };
   if (age != null && age > OBS && moved)
     return { tone:"", head:`Money came in, then stalled.`,
       body:`Outside buyers did show up, and the curve is <b>${(r.progressPct).toFixed(1)}%</b> of the way to a pool after <b>${hrs(age)}</b>. It needs 100% to graduate, and most launches stop where this one has.` };
@@ -639,7 +639,7 @@ async function board() {
   if (!b.resolved) {
     $("#board").innerHTML = `<div class="wait">
       <b>${num(b.made)}</b> predictions written down, none scored yet.<br>
-      Each is scored two hours after the launch it describes.</div>`;
+      Each is scored once its launch has had time to draw buyers.</div>`;
     return;
   }
   const rows = b.calibration.map(c => `<div class="cal">
@@ -658,7 +658,7 @@ board(); setInterval(board, 30000);
 
 /* ── launches happening now ─────────────────────────────────────────────────
    The ten latest launches with our score. Every row is a claim that will be
-   checked two hours later. */
+   checked once its observation window closes. */
 const liveRows = [];
 let livePending = false;
 function drawLive() {
@@ -667,7 +667,13 @@ function drawLive() {
   // after a few seconds and the card closes by itself.
   if (document.querySelector("#live .expand")) { livePending = true; return; }
   livePending = false;
-  $("#livemeta").textContent = "traction = outside buyers reach 10% of the migration threshold within 2h · base rate: 34%";
+  // The base rate is read from the live record, not pinned to the training set:
+    // it drifts, and a stale number beside live scores is the kind of detail
+    // people check.
+    const lbase = window.__live && window.__live.eventRate != null
+      ? pct(window.__live.eventRate) : null;
+    $("#livemeta").textContent = "traction = outside buyers reach 10% of the migration threshold"
+      + (lbase ? " · base rate: " + lbase : "");
   $("#live").innerHTML = '<div class="pickhead"><span>time</span><span>token</span>'
     + '<span>what we see</span><span>traction chance</span></div>'
     + '<div class="picks" style="border-top:0">' + liveRows.slice(0, 10).map((r) => {
@@ -714,7 +720,7 @@ es.onmessage = (e) => {
   var OUT = [
     ["money came", "#a8ff62", "outside buyers showed up"],
     ["nothing came", "#ff653d", "the curve stayed empty"],
-    ["still waiting", "#6f7268", "inside the two-hour window"]
+    ["still waiting", "#6f7268", "still inside its window"]
   ];
 
   function mk(t, a) { var e = document.createElementNS(NS, t); for (var k in a) e.setAttribute(k, a[k]); return e; }

@@ -8,7 +8,7 @@
 
 <p align="center">
   It watches every launch on Robinhood Chain, predicts whether outside money will show up,<br>
-  records the prediction before the outcome exists, and returns two hours later to score itself.
+  records the prediction before the outcome exists, and comes back later to score itself.
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@ Thousands of tokens can launch in a single day. Most never attract meaningful de
 
 GRAID is an always-on **predictive AI agent** built to identify that signal at launch time. It has already analyzed more than **10,000 live launches**. For each new `TokenLaunched` event, it gathers on-chain context, assigns a probability, and permanently records its call while the answer is still unknown.
 
-Two hours later, the agent revisits the curve, measures what actually happened, and adds the result to its public track record. Wins and misses are treated the same way. There is no wallet, no trade execution, and no hand-picked showcase.
+Later, the agent revisits the curve, measures what actually happened, and adds the result to its public track record. Wins and misses are treated the same way. There is no wallet, no trade execution, and no hand-picked showcase.
 
 > **Every launch. One prediction. Written before the outcome.**
 
@@ -53,7 +53,7 @@ The intelligence layer is a transparent probabilistic model rather than an LLM. 
 
 The target is deliberately narrow and measurable:
 
-> **Will outside money reach 10% of the migration threshold within two hours of launch?**
+> **Will outside money reach 10% of the migration threshold early in a token's life?**
 
 Only qualifying buys count. The agent excludes money that is:
 
@@ -62,6 +62,11 @@ Only qualifying buys count. The agent excludes money that is:
 - sent by a wallet declared exempt from the opening tax.
 
 This prevents a creator's own launch buy from being presented as organic traction.
+
+Every launch is scored over the same fixed observation window, measured from its own
+launch block, so one launch is never given longer to succeed than another. The exact
+rule, and why the window is fixed rather than open-ended, is in
+[`docs/event.md`](docs/event.md).
 
 **It does not predict price and does not tell users what to buy.** A token may attract outside demand and still lose value. The agent predicts only whether independent buyers show up during the defined window.
 
@@ -73,7 +78,7 @@ flowchart LR
     B --> C["7 launch<br/>signals"]
     C --> D["AI probability<br/>score"]
     D --> E["Prediction committed<br/>before outcome"]
-    E -.->|two hours| F["Outcome<br/>verification"]
+    E -.->|later| F["Outcome<br/>verification"]
     F --> G["Public agent<br/>track record"]
 ```
 
@@ -113,7 +118,7 @@ The probability scale is not hidden when it is wrong. The model is currently ove
 
 Migration is not the primary prediction target, but the launch score is also tested against later graduation to a Uniswap pool.
 
-In the recorded snapshot, launches scored above 65% reached a pool at approximately **2.8× the rate** of launches scored below 20%. The migration sample is much smaller than the two-hour traction sample, so this should be treated as supporting evidence rather than a promise.
+In the recorded snapshot, launches scored above 65% reached a pool at approximately **2.8× the rate** of launches scored below 20%. The migration sample is much smaller than the traction sample, so this should be treated as supporting evidence rather than a promise.
 
 ## Check the numbers yourself
 
@@ -199,7 +204,7 @@ The server exposes the same intelligence used by the web interface:
 
 The agent is designed to make hindsight manipulation difficult:
 
-- predictions are written before the two-hour outcome exists;
+- predictions are written before the outcome exists;
 - records are append-only JSONL rather than editable showcase entries;
 - model versions and input features are stored with every prediction;
 - the public scoreboard includes misses and calibration errors;
