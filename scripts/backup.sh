@@ -3,6 +3,9 @@
 # Protects against an application bug or a bad edit, but NOT against losing the
 # disk — layer 2 (the push to GitHub) covers that.
 set -e
+# Run from a directory this user can read: find refuses to work when it cannot
+# return to the directory it started in.
+cd "${DATA_DIR:-/opt/pons/data}"
 DATA=${DATA_DIR:-/opt/pons/data}
 DEST=${BACKUP_DIR:-/opt/pons/backups}
 DAY=$(date -u +%Y-%m-%d)

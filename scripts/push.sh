@@ -10,15 +10,20 @@
 set -e
 
 APP=${APP_DIR:-/opt/pons/app}
-REPO=${REPO_DIR:-/opt/pons/repo}
+REPO=${REPO_DIR:-/opt/pons/graid}
 BACKUPS=${BACKUP_DIR:-/opt/pons/backups}
 KEY=${DEPLOY_KEY:-/opt/pons/.ssh/graid_key}
 
 export HOME=${HOME:-/opt/pons}
-export GIT_SSH_COMMAND="ssh -i $KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+# IdentitiesOnly matters: without it ssh offers every key it can find, GitHub
+# accepts the first one it recognises, and a deploy key belonging to a different
+# repository authenticates fine and then reports "repository not found".
+export GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
 
 "$(dirname "$0")/backup.sh" > /dev/null
 
+# Run the copy installed outside the repository, never this file in place: the
+# reset below would delete the running script.
 cd "$REPO"
 git fetch -q origin main
 git reset --hard -q origin/main
