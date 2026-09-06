@@ -576,7 +576,7 @@ graduated(); setInterval(graduated, 120000);
 /* ── token contract ─────────────────────────────────────────────────────────
    THE ONLY PLACE THIS CHANGES. Add the address and ticker after launch and the
    strip appears automatically. When empty, the block is not rendered. */
-const TOKEN = { ticker: "GRAID", address: "0x0000000000000000000000000000000000000000", soon: true };
+const TOKEN = { ticker: "GRAID", address: "", soon: true };
 
 (function contract() {
   if (!TOKEN.address) return;
