@@ -145,6 +145,11 @@ function rebuildPending() {
 rebuildPending();
 rebuildRecent();
 async function resolveDue() {
+  // Yield to the live feed. The resolver holds the same rate-limited endpoint for
+  // dozens of calls per outcome, and while it does, new launches sit unscored. Its
+  // own backlog is thousands deep and will not clear either way, so letting the feed
+  // go first costs nothing and is what people actually look at.
+  if (stats.behind > 0) return;
   const now = Date.now();
   const due = [];
   // Resolve at most 12 per pass to avoid exhausting RPC limits.
@@ -203,8 +208,11 @@ async function poll() {
       note(seenByDeployer, l.args.deployer.toLowerCase());
     }
     if (handled.size > 4000) for (const k of [...handled].slice(0, 2000)) handled.delete(k);
-    // Process every event, not just the first eight; the prediction log must be complete.
-    for (const l of batch) {
+    // Score concurrently. Each launch needs several chain reads, and doing them one
+    // after another put nine minutes between a launch and its row appearing. The
+    // width is small on purpose: the endpoint is rate limited, and a wider fan-out
+    // starts failing reads rather than finishing them sooner.
+    await Promise.all(batch.map(async (l) => {
       try {
         const row = await readToken(l.args.token, { tx: l.transactionHash });
         row.block = Number(l.blockNumber);
@@ -222,7 +230,7 @@ async function poll() {
         while (recent.length && recent[0].at < cut) recent.shift();
         stats.lastLaunchAt = Date.now();
       } catch { stats.skipped++; }
-    }
+    }));
   } catch {} finally {
     // Keep a quarter hour, not a minute: launches arrive twenty at a time inside
     // one minute and then nothing for ten, so a one-minute window reads zero most
