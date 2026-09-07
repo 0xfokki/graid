@@ -98,6 +98,11 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
   background:linear-gradient(180deg,rgba(255,101,61,.10),rgba(255,101,61,.02));
   box-shadow:0 0 60px -6px rgba(255,101,61,.5), inset 0 0 34px -18px rgba(255,101,61,.75); }
 .fcard.warm.hot .tx b { color:var(--orange); }
+.fcard.cool.hot { border-color:rgba(133,135,127,.6);
+  background:linear-gradient(180deg,rgba(133,135,127,.09),rgba(133,135,127,.02));
+  box-shadow:0 0 50px -8px rgba(133,135,127,.4), inset 0 0 30px -18px rgba(133,135,127,.7); }
+.fcard.cool .ic { color:var(--muted); }
+.fcard.cool.hot .tx b { color:var(--paper); }
 .fcard.hot .ic { opacity:1; }
 .fcard.hot .pc { color:inherit; }
 .fcard.lit { border-color:rgba(168,255,98,.4); }
@@ -133,10 +138,16 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
 .score .bar { height:4px; border-radius:3px; background:var(--line); margin-top:6px; overflow:hidden; }
 .score .bar i { display:block; height:100%; background:var(--acid); opacity:.5; border-radius:3px;
   transition:width .5s ease; }
-.flowLines path { fill:none; stroke:rgba(168,255,98,.3); stroke-width:1;
+/* Grey going in, sorted coming out: features arrive colourless and leave as one
+   of the three outcomes, so the motion itself says what the agent does. */
+.flowLines path { fill:none; stroke:rgba(133,135,127,.2); stroke-width:1;
   stroke-dasharray:2.5 5.5; }
-.flowLines circle { filter:drop-shadow(0 0 4px rgba(168,255,98,.9)); }
-.flowLines circle { fill:var(--acid); }
+.flowLines path.ok { stroke:rgba(168,255,98,.32); }
+.flowLines path.no { stroke:rgba(255,101,61,.28); }
+.flowLines circle { fill:var(--muted); filter:drop-shadow(0 0 3px rgba(133,135,127,.7)); }
+.flowLines circle.ok { fill:var(--acid); filter:drop-shadow(0 0 6px rgba(168,255,98,.95)); }
+.flowLines circle.no { fill:var(--orange); filter:drop-shadow(0 0 6px rgba(255,101,61,.9)); }
+.flowLines circle.wait { fill:var(--dim); filter:drop-shadow(0 0 3px rgba(92,94,88,.6)); }
 @media (max-width:1000px) {
   .flow { grid-template-columns:1fr 1fr; margin:34px 0 0; }
   .flowLines { display:none; }
@@ -457,7 +468,7 @@ footer b { color:var(--muted); font-weight:400; }
         <div class="sBody">
         <div class="fcard lit" data-n="b1"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20V5M6 11l6-6 6 6"/></svg><div class="tx"><b>money came</b><i>outside buyers showed up</i></div><span class="pc" id="pcMoney">&mdash;</span></div>
         <div class="fcard warm" data-n="b2"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14"/></svg><div class="tx"><b>nothing came</b><i>the curve stayed empty</i></div><span class="pc" id="pcNothing">&mdash;</span></div>
-        <div class="fcard " data-n="b3"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg><div class="tx"><b>still waiting</b><i>inside its window</i></div><span class="pc" id="pcWaiting">&mdash;</span></div>
+        <div class="fcard cool" data-n="b3"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg><div class="tx"><b>still waiting</b><i>inside its window</i></div><span class="pc" id="pcWaiting">&mdash;</span></div>
         </div>
       </div>
     </div>
@@ -892,11 +903,15 @@ es.onmessage = (e) => {
               " " + mid.toFixed(1) + " " + y2.toFixed(1) +
               " " + x2.toFixed(1) + " " + y2.toFixed(1);
       var id = "fp" + i;
-      out += '<path id="' + id + '" d="' + d + '"/>';
+      var tone = LINKS[k][1] === "b1" ? "ok"
+               : LINKS[k][1] === "b2" ? "no"
+               : LINKS[k][1] === "b3" ? "wait" : "";
+      out += '<path class="' + tone + '" id="' + id + '" d="' + d + '"/>';
       // Two dots per line, offset in time, so the flow reads as continuous
       // rather than as a single travelling blip.
       for (var j = 0; j < 3; j++) {
-        out += '<circle r="2.1" opacity="0.85"><animateMotion dur="1.7s" begin="' +
+        out += '<circle class="' + tone + '" r="2.1" opacity="0.85">'
+             + '<animateMotion dur="1.7s" begin="' +
                (j * 0.567 + (i % 5) * 0.11).toFixed(3) +
                's" repeatCount="indefinite"><mpath href="#' + id + '"/></animateMotion></circle>';
       }
