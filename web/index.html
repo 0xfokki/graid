@@ -90,11 +90,16 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
 /* The outcome cards take the highlight in turn, so the eye is carried from the
    score out to the results the way a launch actually travels. */
 .fcard { transition:border-color .45s ease, box-shadow .45s ease, background .45s ease; }
-.fcard.hot { border-color:rgba(168,255,98,.65);
-  box-shadow:0 0 34px -10px rgba(168,255,98,.45); }
-.fcard.warm.hot { border-color:rgba(255,101,61,.6);
-  box-shadow:0 0 34px -10px rgba(255,101,61,.4); }
+.fcard.hot { border-color:rgba(168,255,98,.85);
+  background:linear-gradient(180deg,rgba(168,255,98,.10),rgba(168,255,98,.02));
+  box-shadow:0 0 60px -6px rgba(168,255,98,.55), inset 0 0 34px -18px rgba(168,255,98,.8); }
+.fcard.hot .tx b { color:var(--acid); }
+.fcard.warm.hot { border-color:rgba(255,101,61,.8);
+  background:linear-gradient(180deg,rgba(255,101,61,.10),rgba(255,101,61,.02));
+  box-shadow:0 0 60px -6px rgba(255,101,61,.5), inset 0 0 34px -18px rgba(255,101,61,.75); }
+.fcard.warm.hot .tx b { color:var(--orange); }
 .fcard.hot .ic { opacity:1; }
+.fcard.hot .pc { color:inherit; }
 .fcard.lit { border-color:rgba(168,255,98,.4); }
 .fcard.lit .pc { color:var(--acid); }
 .fcard.warm { border-color:rgba(255,101,61,.3); }
@@ -118,6 +123,12 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
 .sk1 { width:96px; height:.62em; }
 .sk2 { width:64px; height:9px; opacity:.55; }
 @keyframes skel { 0%{background-position:120% 0} 100%{background-position:-120% 0} }
+/* A brief flare when a new launch replaces the figure, so the change registers
+   instead of the number quietly swapping under the eye. */
+.score.flash { border-color:rgba(168,255,98,.9);
+  box-shadow:0 0 120px -14px rgba(168,255,98,.6), inset 0 0 70px -24px rgba(168,255,98,.6); }
+.score.flash .big { text-shadow:0 0 26px rgba(168,255,98,.75); }
+.score .big { transition:text-shadow .5s ease; }
 .score .bars { margin-top:13px; padding-top:12px; border-top:1px solid var(--line); }
 .score .bar { height:4px; border-radius:3px; background:var(--line); margin-top:6px; overflow:hidden; }
 .score .bar i { display:block; height:100%; background:var(--acid); opacity:.5; border-radius:3px;
@@ -933,7 +944,15 @@ es.onmessage = (e) => {
       var big = document.getElementById("scoreBig");
       var sub = document.getElementById("scoreSub");
       var bars = document.getElementById("scoreBars");
-      if (big) big.textContent = Math.round(last.p * 100) + "%";
+      var shown = Math.round(last.p * 100) + "%";
+      if (big && big.textContent !== shown) {
+        big.textContent = shown;
+        var card = wrap.querySelector(".score");
+        if (card) {
+          card.classList.add("flash");
+          setTimeout(function () { card.classList.remove("flash"); }, 520);
+        }
+      }
       if (sub) sub.textContent = last.symbol ? "$" + last.symbol : "latest launch";
       if (bars && last.parts && last.parts.length) {
         var top = last.parts.slice(0, 3);
