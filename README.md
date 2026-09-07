@@ -12,9 +12,9 @@
 </p>
 
 <p align="center">
-  <img alt="predictions" src="https://img.shields.io/badge/predictions-18%2C482-a8ff62?style=flat-square&labelColor=070806">
-  <img alt="scored" src="https://img.shields.io/badge/scored-10%2C009-e8e8dd?style=flat-square&labelColor=070806">
-  <img alt="auc" src="https://img.shields.io/badge/AUC%20live-0.769-a8ff62?style=flat-square&labelColor=070806">
+  <img alt="predictions" src="https://img.shields.io/badge/predictions-36%2C166-a8ff62?style=flat-square&labelColor=070806">
+  <img alt="scored" src="https://img.shields.io/badge/scored-21%2C017-e8e8dd?style=flat-square&labelColor=070806">
+  <img alt="auc" src="https://img.shields.io/badge/AUC%20live-0.726-a8ff62?style=flat-square&labelColor=070806">
   <img alt="chain" src="https://img.shields.io/badge/Robinhood%20Chain-4663-e8e8dd?style=flat-square&labelColor=070806">
   <img alt="custody" src="https://img.shields.io/badge/custody-none-e8e8dd?style=flat-square&labelColor=070806">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-ff653d?style=flat-square&labelColor=070806">
@@ -98,21 +98,39 @@ The model combines empirical feature rates in log-odds space and applies Platt c
 
 ## Public track record
 
-Snapshot from **2026-09-06**. The live record continues to grow.
+Snapshot from **2026-09-07**. The live record continues to grow, and the site reads
+these figures from it directly rather than from this table.
 
 | Metric | Result |
 |---|---:|
-| Predictions on record | 18,482 |
-| Predictions resolved | 10,009 |
-| Live AUC | **0.769** |
-| Brier score | **0.175** |
-| Base-rate Brier | 0.197 |
-| Outside-money base rate | 25.1% |
-| Top-decile hit rate | **48.7%** |
+| Predictions on record | 36,166 |
+| Predictions resolved | 21,017 |
+| Live AUC | **0.726** |
+| Brier score | 0.200 |
+| Base-rate Brier | **0.191** |
+| Outside-money base rate | 23.2% |
+| Top-decile hit rate | **35.5%** |
 
 The held-out training check produced an AUC of **0.729**, with a range of 0.665–0.786 across four folds.
 
-The probability scale is not hidden when it is wrong. The model is currently overconfident at the top end: scores above 80% should be read as **stronger than most launches**, not as a guaranteed literal probability. Calibration errors remain visible in the public scorecard.
+**These numbers went down, and the reason matters more than the numbers.**
+
+Until 2026-09-06 the listener read a fixed window of the last 600 blocks. Any polling
+cycle slower than a minute silently dropped every launch in between, and slow cycles
+happen precisely during bursts. The agent was recording roughly one launch in ten, and
+not a random one: it saw the quiet stretches and missed the busy ones.
+
+With the bug fixed the agent sees the whole population, and measured against it the same
+model scores worse — live AUC fell from 0.745 to 0.649 on predictions made after the fix.
+The earlier figure was not skill. It was an easier sample.
+
+The Brier score is currently **worse than always guessing the base rate**. The ranking still
+carries signal — AUC 0.726 against 0.5 for a coin — but the probabilities themselves are
+overconfident, because the calibration was fitted when the observed base rate was 28.6%
+and it is now 23.2%. Refitting it on the corrected population is the next piece of work.
+
+`npm run verify` reports both of these as failures against this README today. That is the
+check working, not the check breaking.
 
 ### Migration signal
 
