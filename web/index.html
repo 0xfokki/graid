@@ -87,6 +87,14 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
 .fcard .tx i { display:block; font-style:normal; font-family:var(--mono); font-size:9.5px;
   letter-spacing:.02em; color:var(--dim); margin-top:4px; }
 .fcard .pc { margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--muted); }
+/* The outcome cards take the highlight in turn, so the eye is carried from the
+   score out to the results the way a launch actually travels. */
+.fcard { transition:border-color .45s ease, box-shadow .45s ease, background .45s ease; }
+.fcard.hot { border-color:rgba(168,255,98,.65);
+  box-shadow:0 0 34px -10px rgba(168,255,98,.45); }
+.fcard.warm.hot { border-color:rgba(255,101,61,.6);
+  box-shadow:0 0 34px -10px rgba(255,101,61,.4); }
+.fcard.hot .ic { opacity:1; }
 .fcard.lit { border-color:rgba(168,255,98,.4); }
 .fcard.lit .pc { color:var(--acid); }
 .fcard.warm { border-color:rgba(255,101,61,.3); }
@@ -876,9 +884,9 @@ es.onmessage = (e) => {
       out += '<path id="' + id + '" d="' + d + '"/>';
       // Two dots per line, offset in time, so the flow reads as continuous
       // rather than as a single travelling blip.
-      for (var j = 0; j < 2; j++) {
-        out += '<circle r="2.1" opacity="0.85"><animateMotion dur="3.2s" begin="' +
-               (j * 1.6 + (i % 5) * 0.25).toFixed(2) +
+      for (var j = 0; j < 3; j++) {
+        out += '<circle r="2.1" opacity="0.85"><animateMotion dur="1.7s" begin="' +
+               (j * 0.567 + (i % 5) * 0.11).toFixed(3) +
                's" repeatCount="indefinite"><mpath href="#' + id + '"/></animateMotion></circle>';
       }
       i++;
@@ -941,6 +949,16 @@ es.onmessage = (e) => {
     }
   }
   setInterval(fill, 2600);
+
+  // Carry a highlight down the three outcomes on a loop.
+  var outs = ["b1", "b2", "b3"], beat = 0;
+  setInterval(function () {
+    for (var q = 0; q < outs.length; q++) {
+      var c = el(outs[q]);
+      if (c) c.classList.toggle("hot", q === beat % outs.length);
+    }
+    beat++;
+  }, 1100);
   setTimeout(fill, 150);
   setTimeout(fill, 900);
 })();
