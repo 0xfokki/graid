@@ -38,6 +38,9 @@ body { margin:0; background:var(--ink); color:var(--paper);
   white-space:nowrap; overflow:hidden; }
 .hud .left { float:left; overflow:hidden; text-overflow:ellipsis; max-width:62%; }
 @media (max-width:760px) { .by { display:none; } .hud .left { max-width:100%; } }
+/* The bar is one nowrap line; on a phone the block number is what pushes it
+   past the edge and gives the whole page a sideways scroll. */
+@media (max-width:560px) { .hud .hb { display:none; } }
 .hud b { color:var(--paper); font-weight:500; }
 .hud .a { color:var(--acid); }
 .hud .sep { color:var(--line); padding:0 12px; }
@@ -370,7 +373,7 @@ async function hud() {
   const rate = s.perHour != null ? num(s.perHour) + " launches/h" : s.perMin + " per min";
   $("#hud").innerHTML =
     `<span class="a live">◼</span>&nbsp;live<span class="sep">/</span>` +
-    `block <b>${num(s.block)}</b><span class="sep">/</span>` +
+    `<span class="hb">block <b>${num(s.block)}</b><span class="sep">/</span></span>` +
     `<b>${rate}</b><span class="sep">/</span>` +
     (quiet ? `last <b>${quiet}</b> ago<span class="sep">/</span>` : ``) +
     `<b>${num(s.logged)}</b> logged`;

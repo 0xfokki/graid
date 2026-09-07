@@ -38,6 +38,9 @@ body { margin:0; background:var(--ink); color:var(--paper);
   white-space:nowrap; overflow:hidden; }
 .hud .left { float:left; overflow:hidden; text-overflow:ellipsis; max-width:62%; }
 @media (max-width:760px) { .by { display:none; } .hud .left { max-width:100%; } }
+/* The bar is one nowrap line; on a phone the block number is what pushes it
+   past the edge and gives the whole page a sideways scroll. */
+@media (max-width:560px) { .hud .hb { display:none; } }
 .hud b { color:var(--paper); font-weight:500; }
 .hud .a { color:var(--acid); }
 .hud .sep { color:var(--line); padding:0 12px; }
@@ -162,11 +165,28 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
   filter:drop-shadow(0 0 3px rgba(133,135,127,.9))
          drop-shadow(0 0 10px rgba(133,135,127,.45)); }
 @media (max-width:1000px) {
-  .flow { grid-template-columns:1fr 1fr; margin:34px 0 0; }
-  .flowLines { display:none; }
-  .s3, .s4 { margin-top:22px; }
+  .flow { grid-template-columns:1fr 1fr; margin:30px 0 0; padding:0 22px; gap:0 22px; }
+  .flowLines { display:none; }   /* the curves have nowhere to run once stacked */
+  .s3, .s4 { margin-top:20px; }
 }
-@media (max-width:620px) { .flow { grid-template-columns:1fr; } }
+@media (max-width:620px) {
+  /* Stacked, the four stages ran to 1500px of scrolling. Tighter cards, smaller
+     type and a heading that sits on one line bring it back to a screenful. */
+  .flow { grid-template-columns:1fr; padding:0 18px; }
+  .stage { margin-top:2px; }
+  .s2, .s3, .s4 { margin-top:16px; }
+  .sHead { min-height:0; margin-bottom:10px; }
+  .sHead b { font-size:9.5px; letter-spacing:.12em; }
+  .sHead i { font-size:9px; margin-top:3px; }
+  .fcard { padding:10px 13px; margin-bottom:8px; border-radius:13px; gap:10px; }
+  .fcard .ic { width:16px; height:16px; }
+  .fcard .tx b { font-size:10px; }
+  .fcard .tx i { font-size:9px; margin-top:2px; }
+  .fx, .watch { padding:12px 10px; gap:7px; }
+  .score { padding:15px 15px 13px; }
+  .score .big { font-size:40px; }
+  .score .bars { margin-top:10px; padding-top:9px; }
+}
 .pipeText { padding:10px 26px 0; max-width:64ch; position:relative; z-index:2; }
 /* The contract strip sits between the subtitle and diagram, with enough space
    on both sides to keep it separate from the copy and pipeline. */
@@ -338,6 +358,16 @@ button:disabled { opacity:.35; cursor:default; }
 .pickhead span:nth-child(2) { width:170px; flex-shrink:0; }
 .pickhead span:nth-child(3) { flex:1; }
 .pickhead span:nth-child(4) { width:140px; flex-shrink:0; text-align:right; white-space:nowrap; }
+/* The row is 52 + 170 + 140 plus gaps, which is already wider than a phone and
+   was giving the whole page a sideways scroll. Narrow screens drop the flag
+   column and let the ticker take the slack. */
+@media (max-width:620px) {
+  .pick, .pickhead { gap:10px; }
+  .pick .pn, .pickhead span:nth-child(1) { width:42px; font-size:11px; }
+  .pick .pt, .pickhead span:nth-child(2) { width:auto; flex:1 1 auto; min-width:0; font-size:14px; }
+  .pick .pf, .pickhead span:nth-child(3) { display:none; }
+  .pick .pp, .pickhead span:nth-child(4) { width:auto; flex:0 0 auto; font-size:19px; }
+}
 .pick .pa { margin-left:auto; }
 .pick .pf { font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--muted); flex:1; }
 .pick .pf .d { color:var(--orange); }
@@ -559,7 +589,7 @@ async function hud() {
   const rate = s.perHour != null ? num(s.perHour) + " launches/h" : s.perMin + " per min";
   $("#hud").innerHTML =
     `<span class="a live">◼</span>&nbsp;live<span class="sep">/</span>` +
-    `block <b>${num(s.block)}</b><span class="sep">/</span>` +
+    `<span class="hb">block <b>${num(s.block)}</b><span class="sep">/</span></span>` +
     `<b>${rate}</b><span class="sep">/</span>` +
     (quiet ? `last <b>${quiet}</b> ago<span class="sep">/</span>` : ``) +
     `<b>${num(s.logged)}</b> logged`;
