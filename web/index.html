@@ -144,10 +144,23 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
   stroke-dasharray:2.5 5.5; }
 .flowLines path.ok { stroke:rgba(168,255,98,.32); }
 .flowLines path.no { stroke:rgba(255,101,61,.28); }
-.flowLines circle { fill:var(--muted); filter:drop-shadow(0 0 3px rgba(133,135,127,.7)); }
-.flowLines circle.ok { fill:var(--acid); filter:drop-shadow(0 0 6px rgba(168,255,98,.95)); }
-.flowLines circle.no { fill:var(--orange); filter:drop-shadow(0 0 6px rgba(255,101,61,.9)); }
-.flowLines circle.wait { fill:var(--dim); filter:drop-shadow(0 0 3px rgba(92,94,88,.6)); }
+/* Stacked shadows rather than one: a tight core, a mid halo and a wide bloom,
+   which is what gives the travelling dot depth instead of a hard edge. */
+.flowLines circle { fill:var(--paper);
+  filter:drop-shadow(0 0 3px rgba(232,232,221,.95))
+         drop-shadow(0 0 9px rgba(232,232,221,.55))
+         drop-shadow(0 0 20px rgba(232,232,221,.28)); }
+.flowLines circle.ok { fill:var(--acid);
+  filter:drop-shadow(0 0 3px rgba(168,255,98,1))
+         drop-shadow(0 0 10px rgba(168,255,98,.7))
+         drop-shadow(0 0 24px rgba(168,255,98,.35)); }
+.flowLines circle.no { fill:var(--orange);
+  filter:drop-shadow(0 0 3px rgba(255,101,61,1))
+         drop-shadow(0 0 10px rgba(255,101,61,.65))
+         drop-shadow(0 0 24px rgba(255,101,61,.3)); }
+.flowLines circle.wait { fill:var(--muted);
+  filter:drop-shadow(0 0 3px rgba(133,135,127,.9))
+         drop-shadow(0 0 10px rgba(133,135,127,.45)); }
 @media (max-width:1000px) {
   .flow { grid-template-columns:1fr 1fr; margin:34px 0 0; }
   .flowLines { display:none; }
@@ -910,7 +923,7 @@ es.onmessage = (e) => {
       // Two dots per line, offset in time, so the flow reads as continuous
       // rather than as a single travelling blip.
       for (var j = 0; j < 3; j++) {
-        out += '<circle class="' + tone + '" r="2.1" opacity="0.85">'
+        out += '<circle class="' + tone + '" r="2.6" opacity="0.95">'
              + '<animateMotion dur="1.7s" begin="' +
                (j * 0.567 + (i % 5) * 0.11).toFixed(3) +
                's" repeatCount="indefinite"><mpath href="#' + id + '"/></animateMotion></circle>';
