@@ -101,6 +101,15 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
   line-height:1.02; letter-spacing:-.03em; color:var(--acid); text-align:center; margin-top:5px; }
 .score .sub { font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; margin-top:3px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* Shown until the first launch arrives, roughly a second. A shape rather than a
+   number: a placeholder figure here would contradict the feed further down the
+   page, which lists the same launches with the same probabilities. */
+.skel { display:inline-block; border-radius:5px; vertical-align:middle;
+  background:linear-gradient(90deg,rgba(168,255,98,.10),rgba(168,255,98,.22),rgba(168,255,98,.10));
+  background-size:220% 100%; animation:skel 1.4s ease-in-out infinite; }
+.sk1 { width:96px; height:.62em; }
+.sk2 { width:64px; height:9px; opacity:.55; }
+@keyframes skel { 0%{background-position:120% 0} 100%{background-position:-120% 0} }
 .score .bars { margin-top:13px; padding-top:12px; border-top:1px solid var(--line); }
 .score .bar { height:4px; border-radius:3px; background:var(--line); margin-top:6px; overflow:hidden; }
 .score .bar i { display:block; height:100%; background:var(--acid); opacity:.5; border-radius:3px;
@@ -406,9 +415,13 @@ footer b { color:var(--muted); font-weight:400; }
         <div class="fcard fx" data-n="fx"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><div class="tx"><b>feature engineering</b><i>7 features</i></div></div>
         <div class="fcard score" data-n="score">
           <div class="lb">score</div>
-          <div class="big" id="scoreBig">&mdash;</div>
-          <div class="sub" id="scoreSub">latest launch</div>
-          <div class="bars" id="scoreBars"></div>
+          <div class="big" id="scoreBig"><span class="skel sk1"></span></div>
+          <div class="sub" id="scoreSub"><span class="skel sk2"></span></div>
+          <div class="bars" id="scoreBars">
+            <div class="bar"><i style="width:64%"></i></div>
+            <div class="bar"><i style="width:41%"></i></div>
+            <div class="bar"><i style="width:22%"></i></div>
+          </div>
         </div>
         </div>
       </div>
@@ -913,7 +926,7 @@ es.onmessage = (e) => {
       var sub = document.getElementById("scoreSub");
       var bars = document.getElementById("scoreBars");
       if (big) big.textContent = Math.round(last.p * 100) + "%";
-      if (sub && last.symbol) sub.textContent = "$" + last.symbol;
+      if (sub) sub.textContent = last.symbol ? "$" + last.symbol : "latest launch";
       if (bars && last.parts && last.parts.length) {
         var top = last.parts.slice(0, 3);
         var max = 0.2;
