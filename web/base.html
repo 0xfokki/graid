@@ -33,8 +33,8 @@ body { margin:0; background:var(--ink); color:var(--paper);
 .wrap { width:min(1180px,100%); margin:0 auto; padding:0 26px 72px; }
 
 /* ── slim telemetry bar ─────────────────────────────────────────────── */
-.hud { margin-bottom:60px; font-family:var(--mono); font-size:10.5px; font-weight:400; letter-spacing:.02em;
-  color:var(--dim); border-bottom:1px solid var(--line); padding:13px 0 12px;
+.hud { margin-bottom:60px; font-family:var(--mono); font-size:13.5px; font-weight:400; letter-spacing:.02em;
+  color:var(--dim); border-bottom:1px solid var(--line); padding:17px 0 16px;
   white-space:nowrap; overflow:hidden; }
 .hud .left { float:left; overflow:hidden; text-overflow:ellipsis; max-width:62%; }
 @media (max-width:760px) { .by { display:none; } .hud .left { max-width:100%; } }
@@ -305,8 +305,8 @@ footer b { color:var(--muted); font-weight:400; }
   <div class="about">
     <p>GRAID is an autonomous analyst that does not sleep. It watches every launch on Robinhood Chain,
     reads it straight off the chain the second it lands, and scores it with a model
-    calibrated against thousands of live outcomes. More than 15,000 launches have been
-    judged this way. <b>The guess is written down before the answer
+    calibrated against thousands of live outcomes. More than <b id="judged">15,000</b> launches
+    have been judged this way. <b>The guess is written down before the answer
     exists.</b></p>
     <p>Later the agent goes back, checks what actually happened, and updates its own
     hit rate in public — misses included. Nobody edits the record and nobody picks the examples.
@@ -378,6 +378,11 @@ async function hud() {
     `<div class="fig"><div class="n ${acid ? "a" : ""}">${n}</div><div class="k">${k}</div></div>`;
   // Show live numbers here rather than training figures: they are both more
   // honest and more compelling. Holdout results belong below the scoreboard.
+  // The count in the copy is read from the record, rounded down to the nearest
+  // thousand so it stays a floor claim and does not flicker. Hardcoded, the
+  // sentence understated the agent by half within a day.
+  const judged = document.getElementById("judged");
+  if (judged && s.logged) judged.textContent = num(Math.floor(s.logged / 1000) * 1000);
   const L = window.__live;
   // Wait for the live record before drawing anything. Rendering the training
   // figures first and swapping them seconds later showed two different answers
