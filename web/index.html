@@ -790,9 +790,6 @@ function drawLive() {
   // Do not redraw while a card is expanded; otherwise a new launch replaces it
   // after a few seconds and the card closes by itself.
   if (document.querySelector("#live .expand")) { livePending = true; return; }
-  // The score card shows the launch that just came in, not a made-up example.
-  if (liveRows[0]) window.__lastScore = Object.assign(
-    {}, liveRows[0].scores.outside, { symbol: liveRows[0].symbol });
   livePending = false;
   // The base rate is read from the live record, not pinned to the training set:
     // it drifts, and a stale number beside live scores is the kind of detail
@@ -817,6 +814,9 @@ function drawLive() {
 }
 setInterval(drawLive, 20000);
 
+// The score card cycles through these, so it fills from the first payload
+// instead of sitting blank until the next launch arrives.
+window.__rows = liveRows;
 const es = new EventSource("/api/feed");
 es.onmessage = (e) => {
   const d = JSON.parse(e.data);
@@ -884,6 +884,7 @@ es.onmessage = (e) => {
      waiting" is a count rather than a share, because it answers a different
      question and adding it to the other two would invent a statistic. */
   function pct(x) { return (x * 100).toFixed(1) + "%"; }
+  var step = 0;
   function fill() {
     var L = window.__live;
     if (L && L.eventRate != null) {
@@ -896,7 +897,17 @@ es.onmessage = (e) => {
       var w = document.getElementById("pcWaiting");
       if (w) w.textContent = L.awaiting.toLocaleString("en-US");
     }
-    var last = window.__lastScore;
+    // Cycle the recent launches rather than pinning the newest: the feed hands
+    // over a batch on connect, so the card fills at once and keeps moving.
+    var rows = window.__rows;
+    var last = null;
+    if (rows && rows.length) {
+      var r = rows[step % Math.min(rows.length, 14)];
+      if (r && r.scores && r.scores.outside) {
+        last = { p: r.scores.outside.p, parts: r.scores.outside.parts, symbol: r.symbol };
+      }
+    }
+    step++;
     if (last) {
       var big = document.getElementById("scoreBig");
       var sub = document.getElementById("scoreSub");
@@ -916,8 +927,9 @@ es.onmessage = (e) => {
       }
     }
   }
-  setInterval(fill, 2000);
-  setTimeout(fill, 400);
+  setInterval(fill, 2600);
+  setTimeout(fill, 150);
+  setTimeout(fill, 900);
 })();
 
 </script>
