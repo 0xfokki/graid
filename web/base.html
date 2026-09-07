@@ -61,6 +61,7 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
 
 /* ── metrics row ────────────────────────────────────────────────────── */
 .figures { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  min-height:118px;   /* hold the space so nothing below jumps when the numbers land */
   border-top:1px solid var(--line); margin-top:44px; }
 .fig { padding:22px 0 0; }
 .fig .n { font-family:var(--mono); font-weight:300; font-size:clamp(38px,5vw,68px);
@@ -378,15 +379,24 @@ async function hud() {
   // Show live numbers here rather than training figures: they are both more
   // honest and more compelling. Holdout results belong below the scoreboard.
   const L = window.__live;
-  $("#figures").innerHTML = L && L.resolved
-    ? F(L.auc.toFixed(3), "auc, live", true) +
+  // Wait for the live record before drawing anything. Rendering the training
+  // figures first and swapping them seconds later showed two different answers
+  // to the same question - base rate 34.3% and then 23.3%, and a scored count
+  // off by a few dozen because the two came from different endpoints. The
+  // holdout numbers are a fallback for when the scoreboard is unreachable.
+  if (L && L.resolved) {
+    $("#figures").innerHTML =
+      F(L.auc.toFixed(3), "auc, live", true) +
       F(num(L.resolved), "predictions scored") +
       F(L.hit == null ? "—" : pct(L.hit), "hit rate, top 10%") +
-      F(pct(L.eventRate), "base rate")
-    : F(s.holdout.aucMean.toFixed(3), "auc, out of sample", true) +
-       F(num(s.analyzed ?? s.logged), "launches analyzed") +
-       F(num(s.resolved), "predictions scored") +
-       F(pct(s.base), "training base rate");
+      F(pct(L.eventRate), "base rate");
+  } else if (window.__liveTried) {
+    $("#figures").innerHTML =
+      F(s.holdout.aucMean.toFixed(3), "auc, out of sample", true) +
+      F(num(s.analyzed ?? s.logged), "launches analyzed") +
+      F(num(s.resolved), "predictions scored") +
+      F(pct(s.base), "training base rate");
+  }
 }
 hud(); setInterval(hud, 5000);
 
@@ -601,10 +611,16 @@ const TOKEN = { ticker: "GRAID", address: "", soon: true };
 
 /* ── public track record ── */
 async function board() {
-  let b; try { b = await (await fetch("/api/scoreboard")).json(); } catch { return; }
+  let b;
+  try { b = await (await fetch("/api/scoreboard")).json(); }
+  catch { window.__liveTried = true; return; }   // let the header fall back
+  window.__liveTried = true;
   // Pass the figures to the header instead of duplicating them here.
   window.__live = { auc: b.auc, resolved: b.resolved, eventRate: b.eventRate,
     hit: b.topDecile && b.topDecile.hitRate };
+  // Draw the header figures now rather than waiting up to five seconds for the
+  // next telemetry tick; the block sits empty until they arrive.
+  hud();
   if (!b.resolved) {
     $("#board").innerHTML = `<div class="wait">
       <b>${num(b.made)}</b> predictions written down, none scored yet.<br>
