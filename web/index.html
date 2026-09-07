@@ -62,7 +62,59 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
 
 /* ── pipeline: a diagram that doubles as a live monitor ──────────────────── */
 .heroPipe { position:relative; margin:0 -26px; padding:0; overflow:hidden; }
-#pipe { display:block; width:100%; height:min(74vh,690px); }
+/* -- flow: the pipeline as laid-out cards with drawn connectors beneath ------
+   Cards are markup, not painted shapes, so any number inside them can come from
+   the live record rather than being baked into a drawing. */
+.flow { position:relative; display:grid; gap:0 74px; margin:34px 26px 0;
+  /* A wide gutter on purpose: the connectors are drawn in it, and with a tight
+     gap they collapse into stubs too short to read as a flow. */
+  grid-template-columns:minmax(190px,1fr) minmax(180px,.86fr) minmax(150px,.62fr) minmax(190px,1fr); }
+.flowLines { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+.stage { position:relative; z-index:1; display:flex; flex-direction:column; }
+.sBody { display:flex; flex-direction:column; }
+.s2 .sBody, .s3 .sBody { margin:auto 0; }   /* centre the cards, not the heading */
+.sHead { font-family:var(--mono); margin-bottom:16px; min-height:42px; }
+.sHead b { display:block; font-size:10.5px; font-weight:400; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--paper); }
+.sHead i { display:block; font-style:normal; font-size:10px; letter-spacing:.02em;
+  color:var(--dim); margin-top:5px; }
+.fcard { position:relative; display:flex; align-items:center; gap:12px;
+  border:1px solid var(--line); border-radius:15px; padding:13px 15px; margin-bottom:13px;
+  background:linear-gradient(180deg,rgba(168,255,98,.03),transparent); }
+.fcard .ic { flex:0 0 auto; width:19px; height:19px; color:var(--acid); opacity:.8; }
+.fcard .tx b { display:block; font-family:var(--mono); font-size:11px; font-weight:400;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--paper); }
+.fcard .tx i { display:block; font-style:normal; font-family:var(--mono); font-size:9.5px;
+  letter-spacing:.02em; color:var(--dim); margin-top:4px; }
+.fcard .pc { margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--muted); }
+.fcard.lit { border-color:rgba(168,255,98,.4); }
+.fcard.lit .pc { color:var(--acid); }
+.fcard.warm { border-color:rgba(255,101,61,.3); }
+.fcard.warm .ic, .fcard.warm .pc { color:var(--orange); }
+.fx, .watch { flex-direction:column; text-align:center; gap:9px; padding:17px 13px; }
+.score { flex-direction:column; align-items:stretch; gap:0; padding:20px 18px 16px;
+  border-color:rgba(168,255,98,.45); border-radius:19px;
+  box-shadow:0 0 90px -22px rgba(168,255,98,.32), inset 0 0 60px -32px rgba(168,255,98,.4); }
+.score .lb { font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--muted); text-align:center; }
+.score .big { font-family:var(--mono); font-weight:300; font-size:clamp(38px,4.2vw,58px);
+  line-height:1.02; letter-spacing:-.03em; color:var(--acid); text-align:center; margin-top:5px; }
+.score .sub { font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; margin-top:3px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.score .bars { margin-top:13px; padding-top:12px; border-top:1px solid var(--line); }
+.score .bar { height:4px; border-radius:3px; background:var(--line); margin-top:6px; overflow:hidden; }
+.score .bar i { display:block; height:100%; background:var(--acid); opacity:.5; border-radius:3px;
+  transition:width .5s ease; }
+.flowLines path { fill:none; stroke:rgba(168,255,98,.3); stroke-width:1;
+  stroke-dasharray:2.5 5.5; }
+.flowLines circle { filter:drop-shadow(0 0 4px rgba(168,255,98,.9)); }
+.flowLines circle { fill:var(--acid); }
+@media (max-width:1000px) {
+  .flow { grid-template-columns:1fr 1fr; margin:34px 0 0; }
+  .flowLines { display:none; }
+  .s3, .s4 { margin-top:22px; }
+}
+@media (max-width:620px) { .flow { grid-template-columns:1fr; } }
 .pipeText { padding:10px 26px 0; max-width:64ch; position:relative; z-index:2; }
 /* The contract strip sits between the subtitle and diagram, with enough space
    on both sides to keep it separate from the copy and pipeline. */
@@ -335,7 +387,48 @@ footer b { color:var(--muted); font-weight:400; }
       </p>
     </div>
     <div id="ca"></div>
-    <svg id="pipe"></svg>
+    <div class="flow" id="flow">
+      <svg class="flowLines" id="flowLines" aria-hidden="true"></svg>
+
+      <div class="stage s1">
+        <div class="sHead"><b>1 &middot; collect on-chain data</b><i>seven measured features</i></div>
+        <div class="sBody">
+        <div class="fcard " data-n="a1"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><div class="tx"><b>launch event</b><i>TokenLaunched log</i></div></div>
+        <div class="fcard " data-n="a2"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg><div class="tx"><b>creator buy</b><i>from the launch tx</i></div></div>
+        <div class="fcard " data-n="a3"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><div class="tx"><b>deployer history</b><i>rolling hour</i></div></div>
+        <div class="fcard " data-n="a4"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a4 4 0 0 0 6 .5l2-2a4 4 0 0 0-5.6-5.6l-1 1"/><path d="M14 11a4 4 0 0 0-6-.5l-2 2A4 4 0 0 0 11.6 18l1-1"/></svg><div class="tx"><b>socials &middot; fees &middot; pair</b><i>token record</i></div></div>
+        </div>
+      </div>
+
+      <div class="stage s2">
+        <div class="sHead"><b>2 &middot; score it</b><i>a probability, before the outcome</i></div>
+        <div class="sBody">
+        <div class="fcard fx" data-n="fx"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><div class="tx"><b>feature engineering</b><i>7 features</i></div></div>
+        <div class="fcard score" data-n="score">
+          <div class="lb">score</div>
+          <div class="big" id="scoreBig">&mdash;</div>
+          <div class="sub" id="scoreSub">latest launch</div>
+          <div class="bars" id="scoreBars"></div>
+        </div>
+        </div>
+      </div>
+
+      <div class="stage s3">
+        <div class="sHead"><b>3 &middot; write it down</b><i>before the answer exists</i></div>
+        <div class="sBody">
+        <div class="fcard watch" data-n="watch"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg><div class="tx"><b>watch the curve</b><i>then come back</i></div></div>
+        </div>
+      </div>
+
+      <div class="stage s4">
+        <div class="sHead"><b>4 &middot; real-world result</b><i>measured, not claimed</i></div>
+        <div class="sBody">
+        <div class="fcard lit" data-n="b1"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20V5M6 11l6-6 6 6"/></svg><div class="tx"><b>money came</b><i>outside buyers showed up</i></div><span class="pc" id="pcMoney">&mdash;</span></div>
+        <div class="fcard warm" data-n="b2"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14"/></svg><div class="tx"><b>nothing came</b><i>the curve stayed empty</i></div><span class="pc" id="pcNothing">&mdash;</span></div>
+        <div class="fcard " data-n="b3"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg><div class="tx"><b>still waiting</b><i>inside its window</i></div><span class="pc" id="pcWaiting">&mdash;</span></div>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="figures" id="figures"></div>
 
@@ -662,6 +755,7 @@ async function board() {
   window.__liveTried = true;
   // Pass the figures to the header instead of duplicating them here.
   window.__live = { auc: b.auc, resolved: b.resolved, eventRate: b.eventRate,
+    awaiting: b.awaiting, made: b.made,
     hit: b.topDecile && b.topDecile.hitRate };
   // Draw the header figures now rather than waiting up to five seconds for the
   // next telemetry tick; the block sits empty until they arrive.
@@ -696,6 +790,9 @@ function drawLive() {
   // Do not redraw while a card is expanded; otherwise a new launch replaces it
   // after a few seconds and the card closes by itself.
   if (document.querySelector("#live .expand")) { livePending = true; return; }
+  // The score card shows the launch that just came in, not a made-up example.
+  if (liveRows[0]) window.__lastScore = Object.assign(
+    {}, liveRows[0].scores.outside, { symbol: liveRows[0].symbol });
   livePending = false;
   // The base rate is read from the live record, not pinned to the training set:
     // it drifts, and a stale number beside live scores is the kind of detail
@@ -732,200 +829,95 @@ es.onmessage = (e) => {
    Structure and paths use SVG. Packets are SVG circles with radial fills
    instead of filters, since filters on hundreds of elements hurt frame rate.
    Motion combines flowing wire dashes, packet trails, and a slowly pulsing core. */
-(function pipe() {
-  var svg = document.getElementById("pipe");
-  if (!svg) return;
-  var NS = "http://www.w3.org/2000/svg";
-  var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var W = 1400, H = 700;
-  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+/* -- flow: connectors between the cards --------------------------------------
+   The grid positions the cards; this only measures where they landed and draws a
+   curve between each pair, with a dot travelling along it. Redrawn on resize,
+   because the grid reflows and the old curves would point at nothing. */
+(function flow() {
+  var wrap = document.getElementById("flow");
+  var svg = document.getElementById("flowLines");
+  if (!wrap || !svg) return;
+  var LINKS = [["a1", "fx"], ["a2", "fx"], ["a3", "fx"], ["a4", "fx"],
+               ["fx", "score"], ["score", "watch"],
+               ["watch", "b1"], ["watch", "b2"], ["watch", "b3"]];
+  function el(n) { return wrap.querySelector('[data-n="' + n + '"]'); }
 
-  var IN = [
-    ["launch event", "TokenLaunched log"],
-    ["creator buy", "from the launch tx"],
-    ["deployer history", "rolling hour"],
-    ["socials · fees · pair", "token record"]
-  ];
-  var OUT = [
-    ["money came", "#a8ff62", "outside buyers showed up"],
-    ["nothing came", "#ff653d", "the curve stayed empty"],
-    ["still waiting", "#6f7268", "still inside its window"]
-  ];
-
-  function mk(t, a) { var e = document.createElementNS(NS, t); for (var k in a) e.setAttribute(k, a[k]); return e; }
-
-  // ── glows and fills ─────────────────────────────────────────────────────
-  var defs = mk("defs", {});
-  function glow(id, col, mid) {
-    var g = mk("radialGradient", { id: id });
-    g.appendChild(mk("stop", { offset: "0%", "stop-color": col, "stop-opacity": mid || ".55" }));
-    g.appendChild(mk("stop", { offset: "55%", "stop-color": col, "stop-opacity": ".10" }));
-    g.appendChild(mk("stop", { offset: "100%", "stop-color": col, "stop-opacity": "0" }));
-    defs.appendChild(g);
-  }
-  glow("gCore", "#a8ff62", ".38");
-  glow("gLime", "#a8ff62", "1");
-  glow("gRed", "#ff653d", "1");
-  glow("gGrey", "#9aa093", "1");
-  svg.appendChild(defs);
-
-  var gGlow = mk("g", {}), gW = mk("g", {}), gN = mk("g", {}), gP = mk("g", {});
-  svg.appendChild(gGlow); svg.appendChild(gW); svg.appendChild(gN); svg.appendChild(gP);
-
-  var inX = 18, inW = 288, CX = 462, CW = 300, CH = 208, CY = H / 2 - 104;
-  var outX = W - 302, outW = 284;
-
-  // Soft green glow behind the core, adapted from the reference.
-  gGlow.appendChild(mk("circle", { cx: CX + CW / 2, cy: CY + CH / 2, r: 340,
-    fill: "url(#gCore)", "class": still ? "" : "corePulse" }));
-
-  function box(x, y, w, h, label, sub, cls) {
-    var g = mk("g", {});
-    var big = (cls || "").indexOf("core") >= 0;
-    // Center both text lines on the card axis.
-    var rx = big ? 44 : h / 2;
-    g.appendChild(mk("rect", { x: x, y: y, width: w, height: h, rx: rx,
-      "class": "nodeBox " + (cls || "") }));
-    var tx = mk("text", { x: x + w / 2, y: y + (sub ? h / 2 - (big ? 10 : 5) : h / 2 + 5),
-      "text-anchor": "middle", "class": "nodeTx " + (cls || "") });
-    tx.textContent = label; g.appendChild(tx);
-    if (sub) { var s = mk("text", { x: x + w / 2, y: y + h / 2 + (big ? 24 : 17),
-      "text-anchor": "middle", "class": "nodeTx n" }); s.textContent = sub; g.appendChild(s); }
-    return g;
-  }
-
-  var ins = [], outs = [];
-  IN.forEach(function (row, i) {
-    var y = 44 + i * 152;
-    var bIn = box(inX, y, inW, 96, row[0], row[1]);
-    gN.appendChild(bIn);
-    var d = "M " + (inX + inW) + " " + (y + 48) + " C " + (inX + inW + 120) + " " + (y + 31) +
-            ", " + (CX - 120) + " " + (CY + CH / 2) + ", " + CX + " " + (CY + CH / 2);
-    gW.appendChild(mk("path", { d: d, "class": "wire" }));
-    var f = mk("path", { d: d, "class": "wire flow", style: "animation-delay:" + (i * 0.28) + "s" });
-    gW.appendChild(f);
-    ins.push({ el: f, from: bIn.querySelector("rect"), to: null });
-  });
-
-  var coreBox = box(CX, CY, CW, CH, "score", "seven measured features", "core");
-  gN.appendChild(coreBox);
-  var coreRect = coreBox.querySelector("rect");
-  ins.forEach(function (w) { w.to = coreRect; });
-  var wX = CX + CW + 62, wW = 186;
-  gN.appendChild(box(wX, CY + 56, wW, 96, "write it down", "before the answer"));
-  var dMid = "M " + (CX + CW) + " " + (CY + CH / 2) + " L " + wX + " " + (CY + 104);
-  gW.appendChild(mk("path", { d: dMid, "class": "wire" }));
-  gW.appendChild(mk("path", { d: dMid, "class": "wire flow" }));
-
-  var midX = wX + wW;
-  OUT.forEach(function (row, i) {
-    var y = 74 + i * 202;
-    var g = box(outX, y, outW, 96, row[0], row[2]);
-    g.querySelector("rect").setAttribute("stroke", i === 2 ? "#232620" : row[1] + "4a");
-    g.querySelector("text").setAttribute("fill", row[1]);
-    gN.appendChild(g);
-    var d = "M " + midX + " " + (CY + 104) + " C " + (midX + 90) + " " + (CY + 104) +
-            ", " + (outX - 90) + " " + (y + 48) + ", " + outX + " " + (y + 48);
-    gW.appendChild(mk("path", { d: d, "class": "wire" }));
-    var f = mk("path", { d: d, "class": "wire flow", style: "animation-delay:" + (i * 0.4) + "s" });
-    gW.appendChild(f);
-    outs.push({ el: f, colour: row[1], to: g.querySelector("rect"),
-      grad: i === 0 ? "gLime" : i === 1 ? "gRed" : "gGrey" });
-  });
-
-  // ── packets with trails ─────────────────────────────────────────────────
-  var packets = [], TRAIL = 4;
-  function spawn(side, which) {
-    var set = side === "in" ? ins : outs;
-    var w = which != null ? set[which] : set[(Math.random() * set.length) | 0];
-    var grad = w.grad || "gGrey";
-    var parts = [];
-    for (var i = 0; i < TRAIL; i++) {
-      var c = mk("circle", { r: 11 - i * 1.9, fill: "url(#" + grad + ")", opacity: 0 });
-      gP.appendChild(c); parts.push(c);
+  function draw() {
+    var box = wrap.getBoundingClientRect();
+    if (!box.width) return;
+    svg.setAttribute("viewBox", "0 0 " + Math.round(box.width) + " " + Math.round(box.height));
+    var out = "", i = 0;
+    for (var k = 0; k < LINKS.length; k++) {
+      var A = el(LINKS[k][0]), B = el(LINKS[k][1]);
+      if (!A || !B) continue;
+      var a = A.getBoundingClientRect(), b = B.getBoundingClientRect();
+      var x1 = a.right - box.left, y1 = a.top + a.height / 2 - box.top;
+      var x2 = b.left - box.left, y2 = b.top + b.height / 2 - box.top;
+      if (x2 <= x1) continue;
+      var mid = (x1 + x2) / 2;
+      var d = "M" + x1.toFixed(1) + " " + y1.toFixed(1) +
+              " C" + mid.toFixed(1) + " " + y1.toFixed(1) +
+              " " + mid.toFixed(1) + " " + y2.toFixed(1) +
+              " " + x2.toFixed(1) + " " + y2.toFixed(1);
+      var id = "fp" + i;
+      out += '<path id="' + id + '" d="' + d + '"/>';
+      // Two dots per line, offset in time, so the flow reads as continuous
+      // rather than as a single travelling blip.
+      for (var j = 0; j < 2; j++) {
+        out += '<circle r="2.1" opacity="0.85"><animateMotion dur="3.2s" begin="' +
+               (j * 1.6 + (i % 5) * 0.25).toFixed(2) +
+               's" repeatCount="indefinite"><mpath href="#' + id + '"/></animateMotion></circle>';
+      }
+      i++;
     }
-    if (w.from) flash(w.from);
-    packets.push({ parts: parts, path: w.el, len: w.el.getTotalLength(), to: w.to,
-      t: -0.02, sp: 0.0090 + Math.random() * 0.0040 });
-    if (packets.length > 220) {
-      var old = packets.shift();
-      old.parts.forEach(function (e) { e.remove(); });
+    svg.innerHTML = out;
+  }
+
+  var t;
+  window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(draw, 120); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  setTimeout(draw, 60);
+  setTimeout(draw, 600);
+
+  /* Live numbers in the cards. The outcome split is the resolved record: how
+     often outside money actually turned up, and how often it did not. "Still
+     waiting" is a count rather than a share, because it answers a different
+     question and adding it to the other two would invent a statistic. */
+  function pct(x) { return (x * 100).toFixed(1) + "%"; }
+  function fill() {
+    var L = window.__live;
+    if (L && L.eventRate != null) {
+      var m = document.getElementById("pcMoney");
+      var n = document.getElementById("pcNothing");
+      if (m) m.textContent = pct(L.eventRate);
+      if (n) n.textContent = pct(1 - L.eventRate);
     }
-  }
-
-  var litTimers = new WeakMap();
-  function flash(rect) {
-    if (!rect) return;
-    rect.classList.add("lit");
-    clearTimeout(litTimers.get(rect));
-    litTimers.set(rect, setTimeout(function () { rect.classList.remove("lit"); }, 190));
-  }
-  // An occasional expanding ring adds a larger gesture above the small motion.
-  function ring() {
-    var c = mk("circle", { cx: CX + CW / 2, cy: CY + CH / 2, r: CW / 2,
-      "class": "ring", "stroke-width": 1.4, opacity: 0.5 });
-    gGlow.appendChild(c);
-    var t0 = performance.now();
-    (function grow(now) {
-      var k = (now - t0) / 2100;
-      if (k >= 1) { c.remove(); return; }
-      c.setAttribute("r", CW / 2 + k * 300);
-      c.setAttribute("opacity", (1 - k) * 0.38);
-      c.setAttribute("stroke-width", 1.4 * (1 - k * 0.6));
-      requestAnimationFrame(grow);
-    })(t0);
-  }
-
-  var last = performance.now();
-  function tick(now) {
-    var dt = Math.min(64, now - last); last = now;
-    for (var i = packets.length - 1; i >= 0; i--) {
-      var p = packets[i];
-      p.t += p.sp * (dt / 16);
-      if (p.t >= 1 && !p.hit) { p.hit = 1; flash(p.to); }
-      if (p.t >= 1.05) { p.parts.forEach(function (e) { e.remove(); }); packets.splice(i, 1); continue; }
-      for (var j = 0; j < p.parts.length; j++) {
-        var tj = p.t - j * 0.018;
-        if (tj < 0 || tj > 1) { p.parts[j].setAttribute("opacity", 0); continue; }
-        var pt = p.path.getPointAtLength(tj * p.len);
-        p.parts[j].setAttribute("cx", pt.x);
-        p.parts[j].setAttribute("cy", pt.y);
-        var fade = tj < 0.10 ? tj / 0.10 : tj > 0.90 ? (1 - tj) / 0.10 : 1;
-        p.parts[j].setAttribute("opacity", fade * (j === 0 ? 0.95 : 0.4 - j * 0.09));
+    if (L && L.awaiting != null) {
+      var w = document.getElementById("pcWaiting");
+      if (w) w.textContent = L.awaiting.toLocaleString("en-US");
+    }
+    var last = window.__lastScore;
+    if (last) {
+      var big = document.getElementById("scoreBig");
+      var sub = document.getElementById("scoreSub");
+      var bars = document.getElementById("scoreBars");
+      if (big) big.textContent = Math.round(last.p * 100) + "%";
+      if (sub && last.symbol) sub.textContent = "$" + last.symbol;
+      if (bars && last.parts && last.parts.length) {
+        var top = last.parts.slice(0, 3);
+        var max = 0.2;
+        for (var q = 0; q < top.length; q++) max = Math.max(max, Math.abs(top[q].weight));
+        var html = "";
+        for (var r = 0; r < top.length; r++) {
+          var pctw = Math.max(8, Math.min(100, Math.abs(top[r].weight) / max * 100));
+          html += '<div class="bar"><i style="width:' + pctw.toFixed(0) + '%"></i></div>';
+        }
+        bars.innerHTML = html;
       }
     }
-    requestAnimationFrame(tick);
   }
-
-  if (!still) {
-    requestAnimationFrame(tick);
-    // Keep motion continuous regardless of current network activity. Live
-    // launches add extra packets and make the flow denser.
-    setInterval(function () { spawn("in"); }, 150);
-    setInterval(function () { spawn("out"); }, 300);
-    setInterval(ring, 2600);
-    ring();
-    try {
-      var es2 = new EventSource("/api/feed");
-      es2.onmessage = function (e) {
-        var d = JSON.parse(e.data);
-        if (!d.hello) { spawn("in"); setTimeout(function () { spawn("in"); }, 120); }
-      };
-    } catch (err) {}
-  }
-
-  fetch("/api/scoreboard").then(function (r) { return r.json(); }).then(function (b) {
-    var n = document.getElementById("pipeN");
-    if (n) n.textContent = num(b.resolved);
-    if (still) return;
-    var rate = b.eventRate == null ? 0.33 : b.eventRate;
-    // The green share on the right matches the measured event rate.
-    setInterval(function () {
-      var r = Math.random();
-      spawn("out", r < rate ? 0 : r < 0.93 ? 1 : 2);
-    }, 380);
-  }).catch(function () {});
+  setInterval(fill, 2000);
+  setTimeout(fill, 400);
 })();
 
 </script>

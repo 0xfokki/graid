@@ -5,7 +5,16 @@ The reference that inspired this treatment (monad.com) uses a Lottie animation
 exported from After Effects. This version is procedural and driven by live data,
 so its impact comes from the core glow, flowing wire dashes, and packet trails.
 """
-import io
+import io
+import sys
+
+# DO NOT RUN THIS AS IT STANDS. index.html has been maintained by hand since the
+# hero was rebuilt as laid-out cards, and this script still carries the older
+# drawn-SVG version. Running it would quietly overwrite the current hero with the
+# previous design. Port the changes into the CSS/JS/HERO blocks below before using
+# it again, or delete it and treat index.html as the source.
+sys.exit("build.py is stale - see the note above")
+
 
 src = io.open("base.html", encoding="utf-8").read()
 
