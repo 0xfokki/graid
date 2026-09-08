@@ -186,6 +186,16 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
   .score { padding:15px 15px 13px; }
   .score .big { font-size:40px; }
   .score .bars { margin-top:10px; padding-top:9px; }
+  /* Stacked, the stages lose their connectors and read as one long list. A short
+     dashed run between them puts the order back, and the step heading takes the
+     accent so the eye can count. */
+  .s2, .s3, .s4 { margin-top:4px; }
+  .s2::before, .s3::before, .s4::before {
+    content:""; display:block; width:1px; height:26px; margin:2px auto 16px;
+    background:repeating-linear-gradient(180deg,
+      rgba(133,135,127,.55) 0 3px, transparent 3px 8px); }
+  .sHead b { color:var(--acid); }
+  .sHead { padding-bottom:9px; border-bottom:1px solid var(--line-soft); }
 }
 .pipeText { padding:10px 26px 0; max-width:64ch; position:relative; z-index:2; }
 /* The contract strip sits between the subtitle and diagram, with enough space
@@ -358,15 +368,31 @@ button:disabled { opacity:.35; cursor:default; }
 .pickhead span:nth-child(2) { width:170px; flex-shrink:0; }
 .pickhead span:nth-child(3) { flex:1; }
 .pickhead span:nth-child(4) { width:140px; flex-shrink:0; text-align:right; white-space:nowrap; }
+/* The migrated table carries a trailing status cell, so its heading needs one more
+   column than the live list. */
+#grad .pickhead span:nth-child(1) { width:26px; flex-shrink:0; }
+#grad .pickhead span:nth-child(2) { width:170px; flex-shrink:0; }
+#grad .pickhead span:nth-child(3) { flex:1; }
+#grad .pickhead span:nth-child(4) { width:auto; flex:0 0 auto; text-align:left; }
+#grad .pickhead span:nth-child(5) { width:96px; flex-shrink:0; }
 /* The row is 52 + 170 + 140 plus gaps, which is already wider than a phone and
    was giving the whole page a sideways scroll. Narrow screens drop the flag
    column and let the ticker take the slack. */
 @media (max-width:620px) {
   .pick, .pickhead { gap:10px; }
-  .pick .pn, .pickhead span:nth-child(1) { width:42px; font-size:11px; }
-  .pick .pt, .pickhead span:nth-child(2) { width:auto; flex:1 1 auto; min-width:0; font-size:14px; }
-  .pick .pf, .pickhead span:nth-child(3) { display:none; }
-  .pick .pp, .pickhead span:nth-child(4) { width:auto; flex:0 0 auto; font-size:19px; }
+  /* Only the data cells take these sizes. Sizing the headings with them made the
+     widest of them render at 19px and swamp the column it labels. */
+  .pick .pn { width:58px; font-size:11px; }        /* fits HH:MM:SS */
+  .pick .pt { width:auto; flex:1 1 auto; min-width:0; font-size:14px; }
+  .pick .pp { width:auto; flex:0 0 auto; font-size:19px; }
+  .pick .pf { display:none; }
+  .pickhead span:nth-child(1) { width:58px; }
+  .pickhead span:nth-child(2) { width:auto; flex:1 1 auto; min-width:0; }
+  .pickhead span:nth-child(3) { display:none; }
+  .pickhead span:nth-child(4) { width:auto; flex:0 0 auto; }
+  /* The section rule puts its note beside the title; on a phone they collide. */
+  .rule { flex-wrap:wrap; }
+  .rule .r { margin-left:0; flex-basis:100%; margin-top:6px; line-height:1.5; }
 }
 .pick .pa { margin-left:auto; }
 .pick .pf { font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--muted); flex:1; }
@@ -794,8 +820,14 @@ async function graduated() {
   if (!d.list || !d.list.length) { $("#grad").innerHTML = `<div class="wait">no graduations recorded yet.</div>`; return; }
   const st = d.stats;
   // Label the sorting so this is a transparent sample, not a substitute for the whole set.
-  $("#gradmeta").textContent = `${num(d.ours)} scored · what we said at launch · highest first`;
-  const rows = d.list.slice(0, 8).map((v) => `<div class="pick" data-a="${v.token}">
+  // Showing only the ones we rated highly is a filter. The count it leaves out is
+  // stated beside it rather than left for the reader to wonder about.
+  const shown = d.list.filter((v) => v.p >= 0.5);
+  $("#gradmeta").textContent = d.oursAbove50 != null
+    ? `${num(d.ours)} of the launches we scored have since migrated · showing the `
+      + `${num(d.oursAbove50)} we rated above 50%`
+    : `${num(d.ours)} of the launches we scored have since migrated · rated above 50%`;
+  const rows = (shown.length ? shown : d.list).slice(0, 8).map((v) => `<div class="pick" data-a="${v.token}">
       <span class="pn y">◆</span>
       <span class="pt">$${esc(tick(v.symbol, v.token))}</span>
       <span class="pp ${cl(v.p / 0.328)}">${pct(v.p)}</span>
@@ -804,7 +836,11 @@ async function graduated() {
     `<b>${num(d.ours)}</b> launches we had already scored have since migrated — filled their curve and
      opened a Uniswap v4 pool. Rate a launch above <b>65%</b> and its odds of getting there run
      <b>${st.lift.toFixed(1)}×</b> those of one we rate low, measured over ${num(st.mature)} scored launches.`;
-  $("#grad").innerHTML = `<div class="picks">${rows}</div><div class="claim">${claim}</div>`;
+  // The column carried a bare percentage with nothing saying what it was.
+  const head = `<div class="pickhead"><span></span><span>token</span>
+    <span></span><span>score we gave it at launch</span><span></span></div>`;
+  $("#grad").innerHTML = head + `<div class="picks" style="border-top:0">${rows}</div>`
+    + `<div class="claim">${claim}</div>`;
 }
 graduated(); setInterval(graduated, 120000);
 
