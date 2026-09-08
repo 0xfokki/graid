@@ -41,8 +41,8 @@ const bg = (r, g, b) => (PLAIN ? "" : `\x1b[48;2;${r};${g};${b}m`);
 // disappearing into the background entirely.
 const C = {
   acid: rgb(168, 255, 98), amber: rgb(245, 200, 90), orange: rgb(255, 120, 82),
-  paper: rgb(242, 242, 234), muted: rgb(186, 188, 178), dim: rgb(148, 150, 140),
-  faint: rgb(112, 114, 106),
+  paper: rgb(242, 242, 234), muted: rgb(186, 188, 178), dim: rgb(168, 170, 160),
+  faint: rgb(140, 142, 133),
   bold: PLAIN ? "" : "\x1b[1m", off: PLAIN ? "" : "\x1b[0m",
 };
 
