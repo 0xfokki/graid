@@ -30,6 +30,8 @@ const PLAIN = !!process.env.NOCOLOR;
 // only their timing is ours.
 const DEMO = process.argv.includes("--demo") || !!process.env.DEMO;
 const EVERY = Number(process.env.EVERY ?? 900);
+// Frame interval. Four a second is enough to watch; a capture wants more.
+const DRAW_MS = Number(process.env.DRAW_MS ?? 250);
 
 // ── colour ───────────────────────────────────────────────────────────────────
 const rgb = (r, g, b) => (PLAIN ? "" : `\x1b[38;2;${r};${g};${b}m`);
@@ -334,7 +336,7 @@ if (ONCE) {
   process.on("SIGINT", stop);
   process.on("SIGTERM", stop);
   draw();
-  setInterval(draw, 250);                                    // smooth enough to animate
+  setInterval(draw, DRAW_MS);
   if (DEMO) setInterval(step, EVERY);
   else setInterval(async () => { try { await poll(); } catch {} }, 4000);
   setInterval(loadRecord, 60000);
