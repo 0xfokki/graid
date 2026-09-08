@@ -10,7 +10,8 @@
 //   node src/console.mjs --once    render one frame and exit
 //   ROWS=10 npm run watch          how many launches to keep on screen
 //   NOCOLOR=1 npm run watch        plain output, for piping to a file
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync, existsSync } from "fs";
+import { gunzipSync } from "zlib";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { LOGS, READ, FACTORY, evTokenLaunched, readToken, PHASE } from "./chain.mjs";
@@ -23,6 +24,12 @@ const ONCE = process.argv.includes("--once");
 const ROWS = Number(process.env.ROWS ?? 6);
 const API = process.env.API ?? "https://graid-ai.com";
 const PLAIN = !!process.env.NOCOLOR;
+// Replay walks the recorded predictions at a steady pace. Launches arrive in
+// bursts with minutes of nothing in between, which is honest but makes for a dead
+// screen; the tickers, scores and features are all real, read out of data/ -
+// only their timing is ours.
+const DEMO = process.argv.includes("--demo") || !!process.env.DEMO;
+const EVERY = Number(process.env.EVERY ?? 900);
 
 // ── colour ───────────────────────────────────────────────────────────────────
 const rgb = (r, g, b) => (PLAIN ? "" : `\x1b[38;2;${r};${g};${b}m`);
@@ -117,6 +124,54 @@ async function loadRecord() {
   } catch { /* the view still works without it; those lines are simply omitted */ }
 }
 
+// ── replay ───────────────────────────────────────────────────────────────────
+let tape = [], tapeAt = 0;
+
+function loadTape() {
+  const dir = join(HERE, "..", "data");
+  if (!existsSync(dir)) return;
+  const files = readdirSync(dir).filter((f) => f.startsWith("predictions-")).sort();
+  const all = [];
+  for (const f of files.slice(-2)) {
+    const text = f.endsWith(".gz")
+      ? gunzipSync(readFileSync(join(dir, f))).toString("utf8")
+      : readFileSync(join(dir, f), "utf8");
+    for (const line of text.split(String.fromCharCode(10))) {
+      if (!line.trim()) continue;
+      try {
+        const d = JSON.parse(line);
+        if (d.symbol && d.p_outside != null && d.f) all.push(d);
+      } catch { /* a torn final line is expected in an append-only log */ }
+    }
+  }
+  // A contiguous stretch rather than a shuffle, so consecutive rows come from the
+  // same minutes of the chain and the mix of scores looks the way it really did.
+  if (all.length > 600) {
+    const start = Math.floor(Math.random() * (all.length - 600));
+    tape = all.slice(start, start + 600);
+  } else tape = all;
+}
+
+function step() {
+  if (!tape.length) return;
+  const d = tape[tapeAt % tape.length];
+  tapeAt++;
+  const row = { ...d.f, symbol: d.symbol };
+  row.deployerLaunches = d.f.deployerLaunches ?? 1;
+  row.symbolClones = d.f.symbolClones ?? 1;
+  rows.unshift({
+    at: Date.now(), p: d.p_outside, token: d.token,
+    symbol: String(d.symbol).slice(0, 14) || "?",
+    phase: "on curve",
+    devBuyPct: d.f.devBuyPct,
+    flags: (flags(row, model.outside) ?? []).slice(0, 3),
+  });
+  history.push(d.p_outside);
+  if (history.length > 400) history.shift();
+  checked++;
+  if (rows.length > ROWS) rows.length = ROWS;
+}
+
 async function poll() {
   polling = true;
   try {
@@ -178,7 +233,9 @@ function draw() {
     C.faint + "  ·  " + C.off + C.muted + "pons v2" + C.off +
     C.faint + "  ·  " + C.off + C.muted + "chain 4663" + C.off +
     C.faint + "  ·  " + C.off + bg(168, 255, 98) + rgb(7, 8, 6) + " READ ONLY " + C.off +
-    C.faint + "  ·  " + C.off + C.muted + "no signer" + C.off);
+    C.faint + "  ·  " + C.off + C.muted + "no signer" + C.off +
+    C.faint + "  ·  " + C.off +
+    (DEMO ? C.amber + "replay" : C.muted + "live chain") + C.off);
   out.push(
     C.faint + "  " + new Date().toISOString().slice(11, 19) +
     "   scored " + C.off + C.muted + checked + C.off +
@@ -256,7 +313,12 @@ function draw() {
 
 // ── run ──────────────────────────────────────────────────────────────────────
 await loadRecord();
-try { await poll(); } catch { /* the first pass can race the RPC; the next retries */ }
+if (DEMO) {
+  loadTape();
+  for (let i = 0; i < ROWS; i++) step();      // open on a full screen, not an empty one
+} else {
+  try { await poll(); } catch { /* the first pass can race the RPC; the next retries */ }
+}
 
 if (ONCE) {
   process.stdout.write("\x1b[2J");
@@ -268,6 +330,7 @@ if (ONCE) {
   process.on("SIGTERM", stop);
   draw();
   setInterval(draw, 250);                                    // smooth enough to animate
-  setInterval(async () => { try { await poll(); } catch {} }, 4000);
+  if (DEMO) setInterval(step, EVERY);
+  else setInterval(async () => { try { await poll(); } catch {} }, 4000);
   setInterval(loadRecord, 60000);
 }
