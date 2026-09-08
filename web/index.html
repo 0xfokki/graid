@@ -20,6 +20,7 @@
   --line-soft:#131511;
   --acid:#a8ff62;
   --orange:#ff653d;
+  --amber:#f0c04a;        /* the middle band, between the two we already had */
   --mono:'DM Mono', ui-monospace, monospace;
   --sans:Inter, Arial, sans-serif;
   --serif:'Newsreader', Georgia, serif;
@@ -325,6 +326,7 @@ button:disabled { opacity:.35; cursor:default; }
 .cs .v.sm { font-size:28px; }
 .cs .x { color:var(--muted); font-size:11.5px; margin-top:9px; font-family:var(--mono); }
 .a { color:var(--acid); } .o { color:var(--orange); } .p { color:var(--paper); } .m { color:var(--muted); }
+.w { color:var(--amber); }
 
 .track { position:relative; height:2px; margin-top:18px; background:var(--line); }
 .track i { position:absolute; left:0; top:0; bottom:0; background:var(--acid); }
@@ -360,6 +362,13 @@ button:disabled { opacity:.35; cursor:default; }
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transition:color .15s; }
 .pick .pp { font-family:var(--mono); font-size:26px; font-weight:300; letter-spacing:-.04em;
   color:var(--acid); width:140px; flex-shrink:0; text-align:right; margin-left:auto; }
+/* The band classes are a single selector and lose to the rule above, which sets a
+   colour of its own. Stated at matching depth so the score decides its colour. */
+.pick .pp.a, .cs .v.a { color:var(--acid); }
+.pick .pp.w, .cs .v.w { color:var(--amber); }
+.pick .pp.o, .cs .v.o { color:var(--orange); }
+.pick .pp.m, .cs .v.m { color:var(--muted); }
+.pick .pp.p, .cs .v.p { color:var(--paper); }
 
 /* Column header uses the same flex layout and widths as the rows. */
 .pickhead { display:flex; align-items:baseline; gap:20px; padding:0 0 10px;
@@ -589,6 +598,10 @@ const $ = (s) => document.querySelector(s);
 const pct = (x) => (x * 100).toFixed(x < 0.01 ? 2 : 1) + "%";
 const esc = (s) => String(s ?? "").replace(/[<>&]/g, (c) => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;" }[c]));
 const cl = (l) => (l > 1.25 ? "a" : l < 0.55 ? "o" : l < 0.85 ? "m" : "p");
+// Colour the score by the score. cl() shades by lift against the base rate, which
+// is the more informative reading but not the one someone takes from a number on
+// a page: they read 12% as low whatever the base rate happens to be.
+const band = (p) => (p > 0.7 ? "a" : p >= 0.3 ? "w" : "o");
 const num = (n) => Number(n).toLocaleString("en-US");
 /* Some tickers contain only emoji, which render as images and break the row.
    Strip pictographs specifically, not all non-Latin text: Chinese, Japanese,
@@ -658,7 +671,7 @@ function trackBar(p, base) {
     <span style="left:${Math.min(base/max,1)*100}%">usual ${pct(base)}</span></div>`;
 }
 const statCell = (k, s) => `<div class="cs"><div class="k">${k}</div>
-  <div class="v ${cl(s.lift)}">${pct(s.p)}</div>
+  <div class="v ${band(s.p)}">${pct(s.p)}</div>
   <div class="x">×${s.lift.toFixed(2)} the usual rate</div>${trackBar(s.p, s.base)}</div>`;
 
 // A near-zero-weight flag explains nothing: "deployer x2, 35% vs 34%" looks
@@ -840,7 +853,7 @@ async function graduated() {
   const rows = pick8.map((v) => `<div class="pick" data-a="${v.token}">
       <span class="pn y">◆</span>
       <span class="pt">$${esc(tick(v.symbol, v.token))}</span>
-      <span class="pp ${cl(v.p / 0.328)}">${pct(v.p)}</span>
+      <span class="pp ${band(v.p)}">${pct(v.p)}</span>
       <span class="pa"><span class="hit">migrated</span></span></div>`).join("");
   const claim = !st ? "" :
     `<b>${num(d.ours)}</b> launches we had already scored have since migrated — filled their curve and
@@ -944,7 +957,7 @@ function drawLive() {
       <span class="pn">${new Date(r.at).toLocaleTimeString("en-GB").slice(0, 8)}</span>
       <span class="pt">$${esc(tick(r.symbol, r.token))}</span>
       <span class="pf">${fl}</span>
-      <span class="pp ${cl(t.lift)}">${pct(t.p)}</span></div>`;
+      <span class="pp ${band(t.p)}">${pct(t.p)}</span></div>`;
   }).join("") + "</div>";
 }
 setInterval(drawLive, 20000);
