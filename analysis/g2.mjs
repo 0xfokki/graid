@@ -47,7 +47,9 @@ console.log(`  scored <  20%:  ${below.length} tokens, graduated ${bh.length}  (
 // Persist the list for the site to render.
 const list = [...grads].map(t => byTok.get(t)).filter(Boolean)
   .map(d => ({ token: d.token, symbol: d.symbol, p: d.p_outside, pg: d.p_graduated, t: d.t }))
-  .sort((a,b) => b.p - a.p);
+  // Newest first, not highest first. The model has a ceiling that many launches
+  // reach, so ordering by score filled the published list with one repeated number.
+  .sort((a,b) => Date.parse(b.t) - Date.parse(a.t));
 const rate = (arr) => arr.filter(d => grads.has(d.token.toLowerCase())).length / Math.max(1, arr.length);
 const hiRate = rate(mature.filter(d => d.p_outside >= 0.65));
 const loRate = rate(mature.filter(d => d.p_outside < 0.20));
