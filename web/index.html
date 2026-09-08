@@ -50,9 +50,9 @@ body { margin:0; background:var(--ink); color:var(--paper);
 .hud b { margin:0 .1em; }
 
 /* ── hero: large serif type, weight 400, tightly stacked lines ───────── */
-.hero { margin-bottom:52px; text-align:left; }
+.hero { margin-bottom:80px; text-align:left; }
 .eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--muted); margin-bottom:20px; }
+  color:var(--muted); margin-bottom:28px; }
 .eyebrow .a { color:var(--acid); }
 h1 em { font-style:normal; color:var(--acid); }
 h1 { font-family:var(--serif); font-weight:600; margin:0; font-optical-sizing:auto;
@@ -69,7 +69,7 @@ h1 { font-family:var(--serif); font-weight:600; margin:0; font-optical-sizing:au
 /* -- flow: the pipeline as laid-out cards with drawn connectors beneath ------
    Cards are markup, not painted shapes, so any number inside them can come from
    the live record rather than being baked into a drawing. */
-.flow { position:relative; display:grid; gap:0 74px; margin:34px 26px 0;
+.flow { position:relative; display:grid; gap:0 74px; margin:70px 26px 0;
   /* A wide gutter on purpose: the connectors are drawn in it, and with a tight
      gap they collapse into stubs too short to read as a flow. */
   grid-template-columns:minmax(190px,1fr) minmax(180px,.86fr) minmax(150px,.62fr) minmax(190px,1fr); }
@@ -77,13 +77,13 @@ h1 { font-family:var(--serif); font-weight:600; margin:0; font-optical-sizing:au
 .stage { position:relative; z-index:1; display:flex; flex-direction:column; }
 .sBody { display:flex; flex-direction:column; }
 .s2 .sBody, .s3 .sBody { margin:auto 0; }   /* centre the cards, not the heading */
-.sHead { font-family:var(--mono); margin-bottom:16px; min-height:42px; }
+.sHead { font-family:var(--mono); margin-bottom:22px; min-height:42px; }
 .sHead b { display:block; font-size:10.5px; font-weight:400; letter-spacing:.15em;
   text-transform:uppercase; color:var(--paper); }
 .sHead i { display:block; font-style:normal; font-size:10px; letter-spacing:.02em;
   color:var(--dim); margin-top:5px; }
 .fcard { position:relative; display:flex; align-items:center; gap:12px;
-  border:1px solid var(--line); border-radius:15px; padding:13px 15px; margin-bottom:13px;
+  border:1px solid var(--line); border-radius:15px; padding:15px 17px; margin-bottom:17px;
   background:linear-gradient(180deg,rgba(168,255,98,.03),transparent); }
 .fcard .ic { flex:0 0 auto; width:19px; height:19px; color:var(--acid); opacity:.8; }
 .fcard .tx b { display:block; font-family:var(--mono); font-size:11px; font-weight:400;
@@ -199,12 +199,14 @@ h1 { font-family:var(--serif); font-weight:600; margin:0; font-optical-sizing:au
   .sHead { padding-bottom:9px; border-bottom:1px solid var(--line-soft); }
 }
 /* Wide enough that the second line stays one line at the larger size. */
-.pipeText { padding:10px 26px 0; max-width:100ch; position:relative; z-index:2; }
+/* The hero starts well clear of the strip above it; everything below is spaced
+   to match rather than stacked tight. */
+.pipeText { padding:58px 26px 0; max-width:100ch; position:relative; z-index:2; }
 /* The contract strip sits between the subtitle and diagram, with enough space
    on both sides to keep it separate from the copy and pipeline. */
 #ca { margin:46px 26px 40px; position:relative; z-index:2; }
 .pipeText h1 { font-size:clamp(28px,4.0vw,58px); }
-.pipeText .lede { margin-top:14px; max-width:52ch; font-size:14px; }
+.pipeText .lede { margin-top:30px; max-width:52ch; font-size:14px; }
 
 .nodeBox { fill:#0d0f0b; stroke:#232620; stroke-width:1; }
 .nodeBox.core { fill:#101309; stroke:#4a6b28; stroke-width:1.8; }
@@ -233,8 +235,8 @@ h1 { font-family:var(--serif); font-weight:600; margin:0; font-optical-sizing:au
 /* ── metrics row ────────────────────────────────────────────────────── */
 .figures { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
   min-height:118px;   /* hold the space so nothing below jumps when the numbers land */
-  border-top:1px solid var(--line); margin-top:44px; }
-.fig { padding:22px 0 0; }
+  border-top:1px solid var(--line); margin-top:66px; }
+.fig { padding:30px 0 0; }
 .fig .n { font-family:var(--mono); font-weight:300; font-size:clamp(38px,5vw,68px);
   line-height:1; letter-spacing:-.045em; }
 .fig .n.a { color:var(--acid); }
@@ -286,7 +288,7 @@ h1 { font-family:var(--serif); font-weight:600; margin:0; font-optical-sizing:au
 
 /* ── shared section heading ─────────────────────────────────────────── */
 .rule { display:flex; align-items:baseline; gap:14px; border-top:1px solid var(--line);
-  padding-top:16px; margin:48px 0 22px; }
+  padding-top:20px; margin:74px 0 28px; }
 .rule h2 { font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.18em;
   text-transform:uppercase; color:var(--paper); margin:0; }
 .rule .r { margin-left:auto; font-family:var(--mono); font-size:10.5px; color:var(--dim); }
@@ -400,6 +402,14 @@ button:disabled { opacity:.35; cursor:default; }
   .pickhead span:nth-child(2) { width:auto; flex:1 1 auto; min-width:0; }
   .pickhead span:nth-child(3) { display:none; }
   .pickhead span:nth-child(4) { width:auto; flex:0 0 auto; }
+
+  /* The migrated heading is sized by id, which outranks the rules above, so it
+     kept its desktop columns on a phone and pushed the page sideways. Its two
+     spacer columns carry no text and are the ones to drop. */
+  #grad .pickhead span:nth-child(2) { width:auto; flex:1 1 auto; min-width:0; }
+  #grad .pickhead span:nth-child(3),
+  #grad .pickhead span:nth-child(5) { display:none; }
+  #grad .pickhead span:nth-child(4) { text-align:right; }
   /* The section rule puts its note beside the title; on a phone they collide. */
   .rule { flex-wrap:wrap; }
   .rule .r { margin-left:0; flex-basis:100%; margin-top:6px; line-height:1.5; }
@@ -481,28 +491,127 @@ footer b { color:var(--muted); font-weight:400; }
   .hideSm { display:none; } .f .c { min-width:0; }
   .cal .v { display:none; }
 }
+
+/* ── navigation and the running strip ────────────────────────────────────────
+   The page was one long scroll with no way to see what was below it or to jump
+   there. The bar names the sections; the strip under it carries the live figures
+   so the first thing on screen is moving and measured. */
+.nav { position:sticky; top:0; z-index:40; background:rgba(7,8,6,.86);
+  backdrop-filter:blur(9px); }
+/* The rule under the bar stops where the page does, rather than running out to
+   the window edge past everything it belongs to. */
+.nav .in { width:min(1180px,100%); margin:0 auto; padding:13px 26px;
+  display:flex; align-items:center; gap:26px; border-bottom:1px solid var(--line);
+  font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; }
+.nav .brand { display:flex; align-items:center; gap:8px; color:var(--paper);
+  font-weight:500; letter-spacing:.16em; text-decoration:none; }
+.nav .brand i { font-style:normal; color:var(--acid); }
+.nav .links { display:flex; gap:20px; }
+.nav a { color:var(--dim); text-decoration:none; transition:color .15s; }
+.nav a:hover, .nav a.on { color:var(--acid); }
+.nav .right { margin-left:auto; display:flex; gap:16px; align-items:center; }
+.nav .cta { color:var(--ink); background:var(--acid); border-radius:20px;
+  padding:6px 14px; letter-spacing:.14em; }
+.nav .cta:hover { color:var(--ink); filter:brightness(1.08); }
+@media (max-width:900px) { .nav .links { display:none; } }
+
+.tick { position:sticky; top:56px; z-index:39; background:rgba(7,8,6,.92); }
+.tick .in { width:min(1180px,100%); margin:0 auto; padding:8px 26px;
+  overflow:hidden; white-space:nowrap; border-bottom:1px solid var(--line);
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  /* Faded at both ends so the loop slides out of view instead of being chopped
+     off against a hard edge. */
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 46px,#000 calc(100% - 46px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 46px,#000 calc(100% - 46px),transparent); }
+.tick .run { display:inline-block; animation:roll 46s linear infinite; }
+.tick:hover .run { animation-play-state:paused; }
+.tick b { color:var(--paper); font-weight:500; }
+.tick i { font-style:normal; color:var(--dim); }
+.tick .a { color:var(--acid); }
+.tick .sep { color:var(--line); padding:0 16px; }
+@keyframes roll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+@media (prefers-reduced-motion:reduce) { .tick .run { animation:none; } }
+
+/* ── the row of things to do ───────────────────────────────────────────────── */
+.acts { display:flex; flex-wrap:wrap; gap:12px; margin:44px 26px 0; }
+.acts a, .acts button { font-family:var(--mono); font-size:11px; letter-spacing:.13em;
+  text-transform:uppercase; padding:11px 18px; border-radius:22px; cursor:pointer;
+  border:1px solid var(--line); background:transparent; color:var(--muted);
+  text-decoration:none; transition:color .15s, border-color .15s, background .15s; }
+.acts a:hover, .acts button:hover { color:var(--acid); border-color:rgba(168,255,98,.45); }
+.acts .solid { background:var(--acid); border-color:var(--acid); color:var(--ink); }
+.acts .solid:hover { color:var(--ink); background:#b6ff78; border-color:#b6ff78; }
+
+/* ── the console, and the calibration plot ─────────────────────────────────── */
+.term { margin:0 26px; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+  background:#050604; }
+.termbar { display:flex; align-items:center; gap:9px; padding:11px 15px;
+  border-bottom:1px solid var(--line); font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--dim); }
+.termbar .o { width:9px; height:9px; border-radius:50%; background:var(--line); }
+.termbar .o.g { background:var(--acid); }
+.termbar .cmd { color:var(--muted); text-transform:none; letter-spacing:.02em; }
+.termbar .cp { margin-left:auto; cursor:pointer; color:var(--dim); }
+.termbar .cp:hover { color:var(--acid); }
+.term pre { margin:0; padding:18px 20px; overflow-x:auto; white-space:pre;
+  font-family:var(--mono); font-size:11px; line-height:1.45; color:var(--paper); }
+@media (max-width:700px) { .term pre { font-size:9px; padding:12px; } }
+
+.method { display:grid; grid-template-columns:minmax(320px,1fr) minmax(280px,.85fr);
+  gap:34px; margin:0 26px; align-items:start; }
+.calwrap { border:1px solid var(--line); border-radius:14px; padding:18px 18px 10px; }
+.calwrap svg { display:block; width:100%; height:auto; }
+.cal-line { fill:none; stroke:var(--acid); stroke-width:1.6; }
+.cal-ideal { fill:none; stroke:var(--line); stroke-width:1; stroke-dasharray:3 4; }
+.cal-dot { fill:var(--acid); }
+.cal-ax { stroke:var(--line); stroke-width:1; }
+.cal-t { fill:var(--dim); font-family:var(--mono); font-size:9px; }
+.formula { font-family:var(--mono); font-size:12px; color:var(--paper);
+  border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px;
+  overflow-x:auto; white-space:nowrap; }
+.formula b { color:var(--acid); font-weight:400; }
+.mrow { display:flex; gap:14px; padding:9px 0; border-top:1px solid var(--line-soft);
+  font-family:var(--mono); font-size:11px; }
+.mrow b { color:var(--paper); font-weight:400; flex:0 0 116px; }
+.mrow span { color:var(--dim); }
+@media (max-width:900px) { .method { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-
-  <div class="hud">
-    <span class="by">
-      <a href="https://x.com/0x_fokki" target="_blank" rel="noopener">x.com/0x_fokki</a>
-      <span class="who">/</span>
-      <a href="https://github.com/0xfokki/graid" target="_blank" rel="noopener">github</a>
-    </span>
-    <span class="left" id="hud">connecting…</span>
+<nav class="nav"><div class="in">
+  <a class="brand" href="#top"><i>◈</i> graid</a>
+  <div class="links">
+    <a href="#s-live">live</a>
+    <a href="#s-migrated">migrated</a>
+    <a href="#s-record">record</a>
+    <a href="#s-console">console</a>
+    <a href="#s-method">method</a>
   </div>
+  <div class="right">
+    <a href="https://x.com/0x_fokki" target="_blank" rel="noopener">x</a>
+    <a class="cta" href="https://github.com/0xfokki/graid" target="_blank" rel="noopener">github</a>
+  </div>
+</div></nav>
+<div class="tick"><div class="in"><div class="run" id="tickrun"></div></div></div>
+<div class="wrap" id="top">
+
+  <!-- The telemetry line moved into the running strip above, which carries the
+       same figures and several more without taking a row of its own. -->
+  <span id="hud" hidden></span>
 
   <div class="hero heroPipe">
     <div class="pipeText">
-    <div class="eyebrow"><span class="a">◈</span> on-chain intelligence</div>
       <h1>Real-time AI Agent<br>for <em>token launches</em> on Pons</h1>
       <p class="lede">
         GRAID is an autonomous agent on Robinhood Chain. It scores every token launch
         before the outcome exists — then returns to verify whether it graduated.
       </p>
+    </div>
+    <div class="acts">
+      <a class="solid" href="#s-console">watch it run</a>
+      <a href="https://github.com/0xfokki/graid" target="_blank" rel="noopener">read the code</a>
+      <a href="#s-record">see the record</a>
+      <a href="#s-method">how it scores</a>
     </div>
     <div id="ca"></div>
     <div class="flow" id="flow">
@@ -556,7 +665,7 @@ footer b { color:var(--muted); font-weight:400; }
 
 
 
-  <div class="rule"><h2>what this is</h2></div>
+  <div class="rule" id="s-about"><h2>what this is</h2></div>
   <div class="about">
     <p>GRAID is an autonomous analyst that does not sleep. It watches every launch on Robinhood Chain,
     reads it straight off the chain the second it lands, and scores it with a model
@@ -569,20 +678,87 @@ footer b { color:var(--muted); font-weight:400; }
     whether a launch gains real traction.</span></p>
   </div>
 
-  <div class="rule"><h2>look up any token</h2></div>
+  <div class="rule" id="s-lookup"><h2>look up any token</h2></div>
   <div class="search">
     <input id="q" placeholder="contract address or ticker" autocomplete="off" spellcheck="false">
     <button id="go">analyze</button>
   </div>
   <div id="out"></div>
 
-  <div class="rule"><span class="dot"></span><h2>launching right now</h2><span class="r" id="livemeta"></span></div>
+  <div class="rule" id="s-live"><span class="dot"></span><h2>launching right now</h2><span class="r" id="livemeta"></span></div>
   <div id="live"><div class="wait">waiting for launches…</div></div>
 
-  <div class="rule"><span class="dot"></span><h2>migrated <span style="color:var(--dim);font-weight:400;letter-spacing:.05em;text-transform:none">— filled the curve and opened a Uniswap pool</span></h2><span class="r" id="gradmeta"></span></div>
+  <div class="rule" id="s-migrated"><span class="dot"></span><h2>migrated <span style="color:var(--dim);font-weight:400;letter-spacing:.05em;text-transform:none">— filled the curve and opened a Uniswap pool</span></h2><span class="r" id="gradmeta"></span></div>
   <div id="grad"><div class="wait">loading…</div></div>
 
-  <div class="rule"><span class="dot"></span><h2>track record</h2><span class="r" id="bcnt"></span></div>
+
+  <div class="rule" id="s-console"><span class="dot"></span><h2>the same agent, in a terminal</h2><span class="r">npm run watch</span></div>
+  <div class="term">
+    <div class="termbar">
+      <span class="o g"></span><span class="o"></span><span class="o"></span>
+      <span class="cmd">npm run watch</span>
+      <span class="cp" id="cpcmd">copy</span>
+    </div>
+    <pre>                                                                                                    
+<span style="color:rgb(179,255,117)"><span style="font-weight:700">   ██████  ██████   █████  ██ ██████ </span></span>                                                               
+<span style="color:rgb(179,255,117)"><span style="font-weight:700">  ██       ██   ██ ██   ██ ██ ██   ██</span></span>                                                               
+<span style="color:rgb(179,255,117)"><span style="font-weight:700">  ██  ███  ██████  ███████ ██ ██   ██</span></span>                                                               
+<span style="color:rgb(179,255,117)"><span style="font-weight:700">  ██   ██  ██   ██ ██   ██ ██ ██   ██</span></span>                                                               
+<span style="color:rgb(179,255,117)"><span style="font-weight:700">   ██████  ██   ██ ██   ██ ██ ██████ </span></span>                                                               
+<span style="color:rgb(186,188,178)">  scores every launch on Robinhood Chain before the outcome exists</span>                                  
+                                                                                                    
+  <span style="color:rgb(168,255,98)">●</span> <span style="color:rgb(168,255,98)"><span style="font-weight:700">graid watch</span></span><span style="color:rgb(112,114,106)">  ·  </span><span style="color:rgb(186,188,178)">pons v2</span><span style="color:rgb(112,114,106)">  ·  </span><span style="color:rgb(186,188,178)">chain 4663</span><span style="color:rgb(112,114,106)">  ·  </span><span style="background:rgb(168,255,98)"><span style="color:rgb(7,8,6)"> READ ONLY </span></span><span style="color:rgb(112,114,106)">  ·  </span><span style="color:rgb(186,188,178)">no signer</span><span style="color:rgb(112,114,106)">  ·  </span><span style="color:rgb(245,200,90)">replay</span>                 
+<span style="color:rgb(148,150,140)">  11:31:19   scored </span><span style="color:rgb(242,242,234)">5</span><span style="color:rgb(148,150,140)">   model </span><span style="color:rgb(186,188,178)">41e6d419</span><span style="color:rgb(148,150,140)">   up </span><span style="color:rgb(186,188,178)">1s</span><span style="color:rgb(112,114,106)">   </span><span style="color:rgb(253,111,62)">▁▁▁▂▁</span>                                              
+<span style="color:rgb(112,114,106)">──────────────────────────────────────────────────────────────────────────────────────────────────</span>  
+                                                                                                    
+  <span style="color:rgb(168,255,98)"><span style="font-weight:700">▶</span></span> <span style="color:rgb(112,114,106)">11:31:19</span>  <span style="color:rgb(200,160,220)"><span style="font-weight:700">$HODL           </span></span><span style="color:rgb(112,114,106)">0x2c48…3EE8</span>  <span style="color:rgb(112,114,106)">on curve  </span><span style="color:rgb(253,111,62)">█</span><span style="color:rgb(112,114,106)">─────────────────</span> <span style="color:rgb(253,111,62)"><span style="font-weight:700">   5.7%</span></span>                     
+    <span style="color:rgb(112,114,106)">│  </span><span style="color:rgb(148,150,140)">creator in 2.2%<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no bundle</span></span></span>                                                                  
+    <span style="color:rgb(112,114,106)">└  written before the outcome · outside money arrives 22.4% of the time overall</span>                 
+                                                                                                    
+  <span style="color:rgb(168,255,98)"><span style="font-weight:700">▶</span></span> <span style="color:rgb(112,114,106)">11:31:19</span>  <span style="color:rgb(150,190,230)"><span style="font-weight:700">$PINK           </span></span><span style="color:rgb(112,114,106)">0xecD5…24a5</span>  <span style="color:rgb(112,114,106)">on curve  </span><span style="color:rgb(251,123,64)">██▁</span><span style="color:rgb(112,114,106)">───────────────</span> <span style="color:rgb(251,123,64)"><span style="font-weight:700">  11.8%</span></span>                     
+    <span style="color:rgb(112,114,106)">│  </span><span style="color:rgb(148,150,140)">creator in 1.2%<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no bundle<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no creator fee<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">ticker ×2</span></span></span></span></span></span></span>                                     
+    <span style="color:rgb(112,114,106)">└  written before the outcome · outside money arrives 22.4% of the time overall</span>                 
+                                                                                                    
+  <span style="color:rgb(168,255,98)"><span style="font-weight:700">▶</span></span> <span style="color:rgb(112,114,106)">11:31:19</span>  <span style="color:rgb(255,101,61)"><span style="font-weight:700">$GIGA           </span></span><span style="color:rgb(112,114,106)">0x7b08…f139</span>  <span style="color:rgb(112,114,106)">on curve  </span><span style="color:rgb(255,103,61)">▁</span><span style="color:rgb(112,114,106)">─────────────────</span> <span style="color:rgb(255,103,61)"><span style="font-weight:700">   0.9%</span></span>                     
+    <span style="color:rgb(112,114,106)">│  </span><span style="color:rgb(148,150,140)">creator in 0.1%<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no skin in game<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no bundle<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no socials</span></span></span></span></span></span></span>                                   
+    <span style="color:rgb(112,114,106)">└  written before the outcome · outside money arrives 22.4% of the time overall</span>                 
+                                                                                                    
+  <span style="color:rgb(168,255,98)"><span style="font-weight:700">▶</span></span> <span style="color:rgb(112,114,106)">11:31:19</span>  <span style="color:rgb(168,255,98)"><span style="font-weight:700">$NANACAT        </span></span><span style="color:rgb(112,114,106)">0x6596…C7d3</span>  <span style="color:rgb(112,114,106)">on curve  </span><span style="color:rgb(253,114,63)">█▂</span><span style="color:rgb(112,114,106)">────────────────</span> <span style="color:rgb(253,114,63)"><span style="font-weight:700">   7.0%</span></span>                     
+    <span style="color:rgb(112,114,106)">│  </span><span style="color:rgb(148,150,140)">creator in 3.4%<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">deployer ×2<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no bundle</span></span></span></span></span>                                                    
+    <span style="color:rgb(112,114,106)">└  written before the outcome · outside money arrives 22.4% of the time overall</span>                 
+                                                                                                    
+  <span style="color:rgb(168,255,98)"><span style="font-weight:700">▶</span></span> <span style="color:rgb(112,114,106)">11:31:19</span>  <span style="color:rgb(255,101,61)"><span style="font-weight:700">$GPU            </span></span><span style="color:rgb(112,114,106)">0x79D0…4f67</span>  <span style="color:rgb(112,114,106)">on curve  </span><span style="color:rgb(254,107,62)">▄</span><span style="color:rgb(112,114,106)">─────────────────</span> <span style="color:rgb(254,107,62)"><span style="font-weight:700">   3.3%</span></span>                     
+    <span style="color:rgb(112,114,106)">│  </span><span style="color:rgb(148,150,140)">creator in 0.0%<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no skin in game<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">no socials<span style="color:rgb(112,114,106)"> · <span style="color:rgb(148,150,140)">ticker ×3</span></span></span></span></span></span></span>                                   
+    <span style="color:rgb(112,114,106)">└  written before the outcome · outside money arrives 22.4% of the time overall</span>                 
+                                                                                                    
+<span style="color:rgb(112,114,106)">──────────────────────────────────────────────────────────────────────────────────────────────────</span>  
+  <span style="color:rgb(186,188,178)">record</span><span style="color:rgb(112,114,106)">   </span><span style="color:rgb(242,242,234)">34,343</span><span style="color:rgb(112,114,106)"> scored</span><span style="color:rgb(112,114,106)">   AUC </span><span style="color:rgb(242,242,234)">0.730</span><span style="color:rgb(112,114,106)">   base </span><span style="color:rgb(242,242,234)">22.4%</span><span style="color:rgb(112,114,106)">   recompute it yourself: npm run verify</span>           
+<span style="color:rgb(112,114,106)">  ctrl+c to stop · nothing is signed, no wallet is touched · graid-ai.com</span>                           
+                                                                                                    </pre>
+  </div>
+  <p class="claim" style="margin-top:16px">
+    The console reads the chain itself and scores each launch with the same seven
+    features as the page above. <b>npm run watch --demo</b> replays the recorded
+    predictions instead, at a steady pace, for when the chain is quiet.
+  </p>
+
+  <div class="rule" id="s-method"><span class="dot"></span><h2>how it scores</h2><span class="r">what we said against what happened</span></div>
+  <div class="method">
+    <div class="calwrap">
+      <svg id="calplot" viewBox="0 0 460 330" role="img" aria-label="calibration"></svg>
+    </div>
+    <div>
+      <div class="formula">p = sigmoid( <b>a</b> · logit( &Sigma; w<sub>i</sub> ) + <b>b</b> )</div>
+      <div class="mrow"><b>seven features</b><span>each one read off the chain at the moment the launch appears</span></div>
+      <div class="mrow"><b>empirical rates</b><span>how often the event followed in that bucket, shrunk towards the base rate</span></div>
+      <div class="mrow"><b>log-odds</b><span>the buckets are summed as evidence, not multiplied as probabilities</span></div>
+      <div class="mrow"><b>calibration</b><span>a and b are fitted on resolved outcomes and validated on a later slice</span></div>
+      <div class="mrow"><b>no language model</b><span>nothing in the scoring path generates text</span></div>
+      <p class="claim" style="margin-top:14px" id="calnote"></p>
+    </div>
+  </div>
+
+  <div class="rule" id="s-record"><span class="dot"></span><h2>track record</h2><span class="r" id="bcnt"></span></div>
   <div id="board"><div class="wait">loading…</div></div>
 
   <footer>
@@ -640,6 +816,7 @@ async function hud() {
   // The count in the copy is read from the record, rounded down to the nearest
   // thousand so it stays a floor claim and does not flicker. Hardcoded, the
   // sentence understated the agent by half within a day.
+  strip(s, window.__live);
   const judged = document.getElementById("judged");
   if (judged && s.logged) judged.textContent = num(Math.floor(s.logged / 1000) * 1000);
   const L = window.__live;
@@ -892,6 +1069,76 @@ const TOKEN = { ticker: "GRAID", address: "", soon: true };
   };
 })();
 
+
+/* ── the running strip ───────────────────────────────────────────────────────
+   Duplicated once so the loop has no seam: the animation shifts by half its own
+   width and lands back where it started. */
+// The strip is written once and then left alone. Re-rendering it restarted the
+// CSS animation on every refresh, which read as a stutter; and the figures it
+// carries - the size of the record, the AUC, the base rate - move by fractions
+// of a percent a day, so a snapshot taken on load is accurate all session.
+let stripDone = false;
+function strip(s, b) {
+  if (stripDone) return;
+  const el = document.getElementById("tickrun");
+  if (!el || !b || !b.resolved) return;
+  const bit = (k, v, acid) =>
+    `<i>${k}</i>&nbsp;<b class="${acid ? "a" : ""}">${v}</b><span class="sep">/</span>`;
+  const h =
+    bit("chain", "robinhood 4663") +
+    bit("scored", num(b.made ?? b.resolved), true) +
+    bit("resolved", num(b.resolved)) +
+    bit("auc live", b.auc.toFixed(3), true) +
+    bit("base rate", pct(b.eventRate)) +
+    (b.topDecile ? bit("top decile", pct(b.topDecile.hitRate), true) : "") +
+    bit("written", "before the outcome") +
+    bit("custody", "none") +
+    bit("signer", "none") +
+    bit("record", "recomputable");
+  el.innerHTML = h + h;
+  stripDone = true;
+}
+
+
+/* ── calibration plot ────────────────────────────────────────────────────────
+   Said along the bottom, happened up the side, with the diagonal for reference.
+   Where the line sits under the diagonal we claimed more than we delivered, and
+   that is the part worth showing rather than the part worth hiding. */
+function drawCal(b) {
+  const el = document.getElementById("calplot");
+  if (!el || !b || !b.calibration || !b.calibration.length) return;
+  const W = 460, H = 330, L = 40, B = 34, T = 12, R = 12;
+  const x = (v) => L + v * (W - L - R);
+  const y = (v) => H - B - v * (H - B - T);
+  const pts = b.calibration.map((c) => ({ said: c.said, actual: c.actual, n: c.n }));
+  let g = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = i / 4;
+    g += `<line class="cal-ax" x1="${x(v)}" y1="${y(0)}" x2="${x(v)}" y2="${y(0) + 4}"/>`;
+    g += `<line class="cal-ax" x1="${x(0) - 4}" y1="${y(v)}" x2="${x(0)}" y2="${y(v)}"/>`;
+    g += `<text class="cal-t" x="${x(v)}" y="${y(0) + 16}" text-anchor="middle">${v * 100}%</text>`;
+    g += `<text class="cal-t" x="${x(0) - 8}" y="${y(v) + 3}" text-anchor="end">${v * 100}%</text>`;
+  }
+  g += `<line class="cal-ax" x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(0)}"/>`;
+  g += `<line class="cal-ax" x1="${x(0)}" y1="${y(0)}" x2="${x(0)}" y2="${y(1)}"/>`;
+  g += `<line class="cal-ideal" x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(1)}"/>`;
+  g += `<polyline class="cal-line" points="${pts.map((c) => x(c.said) + "," + y(c.actual)).join(" ")}"/>`;
+  for (const c of pts) g += `<circle class="cal-dot" cx="${x(c.said)}" cy="${y(c.actual)}" r="3"/>`;
+  g += `<text class="cal-t" x="${x(0.5)}" y="${H - 4}" text-anchor="middle">what we said</text>`;
+  g += `<text class="cal-t" transform="translate(11,${y(0.5)}) rotate(-90)" text-anchor="middle">what happened</text>`;
+  el.innerHTML = g;
+
+  const worst = pts.reduce((a, c) => (c.said - c.actual > a.said - a.actual ? c : a), pts[0]);
+  const note = document.getElementById("calnote");
+  if (note) {
+    note.innerHTML = worst.said > worst.actual
+      ? `The line runs under the diagonal at the top: at <b>${pct(worst.said)}</b> the outcome
+         followed <b>${pct(worst.actual)}</b> of the time, over ${num(worst.n)} launches.
+         The ordering holds, the numbers themselves read high.`
+      : `The line tracks the diagonal across the range.`;
+  }
+}
+
 /* ── public track record ── */
 async function board() {
   let b;
@@ -905,6 +1152,8 @@ async function board() {
   // Draw the header figures now rather than waiting up to five seconds for the
   // next telemetry tick; the block sits empty until they arrive.
   hud();
+  strip(null, window.__live);
+  drawCal(b);
   if (!b.resolved) {
     $("#board").innerHTML = `<div class="wait">
       <b>${num(b.made)}</b> predictions written down, none scored yet.<br>
