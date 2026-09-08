@@ -218,12 +218,17 @@ function draw() {
   const out = [];
   const line = (ch) => C.faint + ch.repeat(W) + C.off;
 
-  // Header. The logo breathes very slightly so the frame is never quite still.
-  const glow = 0.82 + 0.18 * Math.sin(frame / 9);
-  const lr = Math.round(168 * glow), lg = Math.round(255 * glow), lb = Math.round(98 * glow);
+  // Header. The logo never dims - it breathes upward, towards white, so the mark
+  // stays at full strength and the movement reads as a highlight passing over it
+  // rather than as the thing fading out.
+  const t = 0.5 + 0.5 * Math.sin(frame / 10);
+  const mix = 0.22 * t;
+  const lr = Math.round(168 + (255 - 168) * mix);
+  const lg = 255;
+  const lb = Math.round(98 + (255 - 98) * mix);
   out.push("");
   for (const l of LOGO) out.push(rgb(lr, lg, lb) + C.bold + "  " + l + C.off);
-  out.push(C.dim + "  scores every launch on Robinhood Chain before the outcome exists" + C.off);
+  out.push(C.muted + "  scores every launch on Robinhood Chain before the outcome exists" + C.off);
   out.push("");
 
   const dot = polling ? C.amber + SPIN[frame % SPIN.length]
@@ -237,10 +242,10 @@ function draw() {
     C.faint + "  ·  " + C.off +
     (DEMO ? C.amber + "replay" : C.muted + "live chain") + C.off);
   out.push(
-    C.faint + "  " + new Date().toISOString().slice(11, 19) +
-    "   scored " + C.off + C.muted + checked + C.off +
-    C.faint + "   model " + C.off + C.muted + model.version + C.off +
-    C.faint + "   up " + C.off + C.muted + Math.round((Date.now() - started) / 1000) + "s" + C.off +
+    C.dim + "  " + new Date().toISOString().slice(11, 19) +
+    "   scored " + C.off + C.paper + checked + C.off +
+    C.dim + "   model " + C.off + C.muted + model.version + C.off +
+    C.dim + "   up " + C.off + C.muted + Math.round((Date.now() - started) / 1000) + "s" + C.off +
     (history.length ? C.faint + "   " + C.off + ramp(history[history.length - 1]) +
       spark(history, 28) + C.off : ""));
   out.push(line("─"));
