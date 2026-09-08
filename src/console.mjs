@@ -27,10 +27,13 @@ const PLAIN = !!process.env.NOCOLOR;
 // ── colour ───────────────────────────────────────────────────────────────────
 const rgb = (r, g, b) => (PLAIN ? "" : `\x1b[38;2;${r};${g};${b}m`);
 const bg = (r, g, b) => (PLAIN ? "" : `\x1b[48;2;${r};${g};${b}m`);
+// The greys are lifted well above the site's: a page is read on a bright screen
+// at close range, a terminal often is not, and the darkest two tiers were
+// disappearing into the background entirely.
 const C = {
-  acid: rgb(168, 255, 98), amber: rgb(240, 192, 74), orange: rgb(255, 101, 61),
-  paper: rgb(232, 232, 221), muted: rgb(133, 135, 127), dim: rgb(92, 94, 88),
-  faint: rgb(52, 54, 50),
+  acid: rgb(168, 255, 98), amber: rgb(245, 200, 90), orange: rgb(255, 120, 82),
+  paper: rgb(242, 242, 234), muted: rgb(186, 188, 178), dim: rgb(148, 150, 140),
+  faint: rgb(112, 114, 106),
   bold: PLAIN ? "" : "\x1b[1m", off: PLAIN ? "" : "\x1b[0m",
 };
 
@@ -59,19 +62,35 @@ const rpad = (s, n) => String(s).padStart(n);
 // Length as the terminal sees it, with the escape sequences taken out.
 const vis = (s) => s.replace(/\x1b\[[0-9;]*m/g, "").length;
 
-function bar(p, width) {
-  const filled = p * width;
+// A filled run on a visible track, the way a gauge reads. Without the track a
+// low score looks like an empty row rather than a small number.
+function bar(p, width, col) {
+  const filled = Math.max(0, Math.min(1, p)) * width;
   const whole = Math.floor(filled);
   const rest = filled - whole;
-  let out = "█".repeat(whole);
-  if (whole < width && rest > 0.08) out += BLOCKS[Math.max(0, Math.round(rest * 7) - 1)];
-  return pad(out, width);
+  let head = "";
+  if (whole < width && rest > 0.08) head = BLOCKS[Math.max(0, Math.round(rest * 7) - 1)];
+  const used = whole + (head ? 1 : 0);
+  return col + "█".repeat(whole) + head + C.off +
+         C.faint + "─".repeat(Math.max(0, width - used)) + C.off;
 }
 
 function spark(values, width) {
   if (!values.length) return " ".repeat(width);
   const take = values.slice(-width);
   return take.map((v) => BLOCKS[Math.min(7, Math.max(0, Math.round(v * 7)))]).join("");
+}
+
+// Each ticker keeps its own hue, picked from the symbol so it is stable between
+// frames. Muted on purpose: the eye should separate the rows, not be shouted at.
+const HUES = [
+  [168, 255, 98], [126, 217, 87], [240, 192, 74], [255, 158, 66],
+  [255, 101, 61], [120, 200, 160], [150, 190, 230], [200, 160, 220],
+];
+function hue(sym) {
+  let h = 0;
+  for (let i = 0; i < sym.length; i++) h = (h * 31 + sym.charCodeAt(i)) >>> 0;
+  return HUES[h % HUES.length];
 }
 
 const LOGO = [
@@ -180,16 +199,23 @@ function draw() {
     const col = ramp(r.p);
     const clock = new Date(r.at).toISOString().slice(11, 19);
     const mark = fresh
-      ? (frame % 6 < 3 ? C.acid + "▶" : C.amber + "▶")
+      ? (frame % 6 < 3 ? C.acid + C.bold + "▶" : C.amber + "▶")
       : C.faint + "│";
+    // The gauge runs up to the score over the first second, so a new row is read
+    // as something happening rather than as another line of text.
+    // A single frame has no time to animate, so it draws the gauge at rest.
+    const grow = ONCE ? 1 : Math.min(1, Math.max(0, age / 1.1));
+    const shown = r.p * (grow < 1 ? grow * grow * (3 - 2 * grow) : 1);
+    const [hr, hg, hb] = hue(r.symbol);
+    const tick = fresh ? rgb(hr, hg, hb) + C.bold : rgb(Math.round(hr * .62), Math.round(hg * .62), Math.round(hb * .62));
 
     out.push("");
-    const name = (fresh ? C.paper + C.bold : C.muted) + pad("$" + r.symbol, 16) + C.off;
     out.push(
-      "  " + mark + C.off + " " + C.faint + clock + C.off + "  " + name +
+      "  " + mark + C.off + " " + C.faint + clock + C.off + "  " +
+      tick + pad("$" + r.symbol, 16) + C.off +
       C.faint + r.token.slice(0, 6) + "…" + r.token.slice(-4) + C.off +
       "  " + C.faint + pad(r.phase, 10) + C.off +
-      col + bar(r.p, 18) + C.off + " " + col + C.bold + rpad(pct(r.p), 7) + C.off);
+      bar(shown, 18, col) + " " + col + C.bold + rpad(pct(r.p), 7) + C.off);
 
     const texts = r.flags.map((f) => String(f.text || "").toLowerCase());
     const bits = [];
