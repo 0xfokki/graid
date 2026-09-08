@@ -504,9 +504,10 @@ footer b { color:var(--muted); font-weight:400; }
   font-weight:500; letter-spacing:.16em; text-decoration:none; }
 .nav .brand i { font-style:normal; color:var(--acid); }
 .nav .links { display:flex; gap:20px; }
-.nav a { color:var(--dim); text-decoration:none; transition:color .15s; }
+.nav a { color:#b3b5a9; text-decoration:none; transition:color .15s; }
 .nav a:hover, .nav a.on { color:var(--acid); }
 .nav .right { margin-left:auto; display:flex; gap:16px; align-items:center; }
+.nav .xl { color:var(--paper); }
 .nav .cta { color:var(--ink); background:var(--acid); border-radius:20px;
   padding:6px 14px; letter-spacing:.14em; }
 .nav .cta:hover { color:var(--ink); filter:brightness(1.08); }
@@ -579,13 +580,13 @@ footer b { color:var(--muted); font-weight:400; }
   <a class="brand" href="#top"><i>◈</i> graid</a>
   <div class="links">
     <a href="#s-live">live</a>
-    <a href="#s-migrated">migrated</a>
-    <a href="#s-record">record</a>
     <a href="#s-console">console</a>
+    <a href="#s-migrated">migrated</a>
     <a href="#s-method">method</a>
+    <a href="#s-record">record</a>
   </div>
   <div class="right">
-    <a href="https://x.com/0x_fokki" target="_blank" rel="noopener">x</a>
+    <a class="xl" href="https://x.com/0x_fokki" target="_blank" rel="noopener">x.com</a>
     <a class="cta" href="https://github.com/0xfokki/graid" target="_blank" rel="noopener">github</a>
   </div>
 </div></nav>
@@ -685,10 +686,6 @@ footer b { color:var(--muted); font-weight:400; }
   <div class="rule" id="s-live"><span class="dot"></span><h2>launching right now</h2><span class="r" id="livemeta"></span></div>
   <div id="live"><div class="wait">waiting for launches…</div></div>
 
-  <div class="rule" id="s-migrated"><span class="dot"></span><h2>migrated <span style="color:var(--dim);font-weight:400;letter-spacing:.05em;text-transform:none">— filled the curve and opened a Uniswap pool</span></h2><span class="r" id="gradmeta"></span></div>
-  <div id="grad"><div class="wait">loading…</div></div>
-
-
   <div class="rule" id="s-console"><span class="dot"></span><h2>the same agent, in a terminal</h2><span class="r">npm run watch</span></div>
   <div class="term">
     <div class="termbar">
@@ -738,6 +735,9 @@ footer b { color:var(--muted); font-weight:400; }
     features as the page above. <b>npm run watch --demo</b> replays the recorded
     predictions instead, at a steady pace, for when the chain is quiet.
   </p>
+
+  <div class="rule" id="s-migrated"><span class="dot"></span><h2>migrated <span style="color:var(--dim);font-weight:400;letter-spacing:.05em;text-transform:none">— filled the curve and opened a Uniswap pool</span></h2><span class="r" id="gradmeta"></span></div>
+  <div id="grad"><div class="wait">loading…</div></div>
 
   <div class="rule" id="s-method"><span class="dot"></span><h2>how it scores</h2><span class="r">what we said against what happened</span></div>
   <div class="method">
