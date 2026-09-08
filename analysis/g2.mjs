@@ -58,6 +58,7 @@ writeFileSync(join(DATA, "graduated.json"), JSON.stringify({
   // Counted over every migration we scored, not over the published sample, so the
   // page can say what share of them it is showing.
   oursAbove50: list.filter((d) => d.p >= 0.5).length,
+  oursAbove70: list.filter((d) => d.p > 0.7).length,
   stats: { mature: mature.length, graduated: g.length, base: g.length / mature.length,
            hiRate, loRate, lift: loRate ? hiRate / loRate : null,
            hiN: mature.filter(d => d.p_outside >= 0.65).length },

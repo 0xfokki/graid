@@ -836,11 +836,11 @@ async function graduated() {
   // Label the sorting so this is a transparent sample, not a substitute for the whole set.
   // Showing only the ones we rated highly is a filter. The count it leaves out is
   // stated beside it rather than left for the reader to wonder about.
-  const shown = d.list.filter((v) => v.p >= 0.5);
-  $("#gradmeta").textContent = d.oursAbove50 != null
+  const shown = d.list.filter((v) => v.p > 0.7);
+  $("#gradmeta").textContent = d.oursAbove70 != null
     ? `${num(d.ours)} of the launches we scored have since migrated · showing the `
-      + `${num(d.oursAbove50)} we rated above 50%`
-    : `${num(d.ours)} of the launches we scored have since migrated · rated above 50%`;
+      + `${num(d.oursAbove70)} we rated above 70%`
+    : `${num(d.ours)} of the launches we scored have since migrated · rated above 70%`;
   // One row per distinct figure. The model lands many launches on the same score,
   // so without this the column repeats 76.9% three times and looks manufactured.
   const seenScore = new Set(), seenTicker = new Set();
