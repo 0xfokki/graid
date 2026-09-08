@@ -6,9 +6,10 @@
 // flags. What it adds over a block explorer is the score and the record behind
 // it: every line says how often calls at that level actually came true.
 //
-//   node src/console.mjs           follow live
+//   npm run watch                  follow live
 //   node src/console.mjs --once    render one frame and exit
-//   ROWS=8 node src/console.mjs    how many launches to keep on screen
+//   ROWS=10 npm run watch          how many launches to keep on screen
+//   NOCOLOR=1 npm run watch        plain output, for piping to a file
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -21,24 +22,57 @@ const model = JSON.parse(readFileSync(join(HERE, "model.json"), "utf8"));
 const ONCE = process.argv.includes("--once");
 const ROWS = Number(process.env.ROWS ?? 6);
 const API = process.env.API ?? "https://graid-ai.com";
+const PLAIN = !!process.env.NOCOLOR;
 
 // ── colour ───────────────────────────────────────────────────────────────────
+const rgb = (r, g, b) => (PLAIN ? "" : `\x1b[38;2;${r};${g};${b}m`);
+const bg = (r, g, b) => (PLAIN ? "" : `\x1b[48;2;${r};${g};${b}m`);
 const C = {
-  acid: "\x1b[38;2;168;255;98m",
-  amber: "\x1b[38;2;240;192;74m",
-  orange: "\x1b[38;2;255;101;61m",
-  paper: "\x1b[38;2;232;232;221m",
-  muted: "\x1b[38;2;133;135;127m",
-  dim: "\x1b[38;2;92;94;88m",
-  bold: "\x1b[1m",
-  off: "\x1b[0m",
+  acid: rgb(168, 255, 98), amber: rgb(240, 192, 74), orange: rgb(255, 101, 61),
+  paper: rgb(232, 232, 221), muted: rgb(133, 135, 127), dim: rgb(92, 94, 88),
+  faint: rgb(52, 54, 50),
+  bold: PLAIN ? "" : "\x1b[1m", off: PLAIN ? "" : "\x1b[0m",
 };
-// Green above 70, amber down to 30, orange below - the bands the site uses, so a
-// number means the same thing in both places.
-const band = (p) => (p > 0.7 ? C.acid : p >= 0.3 ? C.amber : C.orange);
+
+// A continuous ramp rather than three steps: orange at nothing, amber through
+// the middle, acid at the top. The site shows bands because a reader needs a
+// verdict; here the extra resolution is free and the eye follows it.
+function ramp(p) {
+  const stops = [[0, 255, 101, 61], [0.5, 240, 192, 74], [1, 168, 255, 98]];
+  const x = Math.max(0, Math.min(1, p));
+  for (let i = 1; i < stops.length; i++) {
+    const [a, ar, ag, ab] = stops[i - 1], [b, br, bg_, bb] = stops[i];
+    if (x <= b) {
+      const t = (x - a) / (b - a);
+      return rgb(Math.round(ar + (br - ar) * t),
+                 Math.round(ag + (bg_ - ag) * t),
+                 Math.round(ab + (bb - ab) * t));
+    }
+  }
+  return C.acid;
+}
+
+const BLOCKS = "▁▂▃▄▅▆▇█";
 const pct = (x) => (x * 100).toFixed(1) + "%";
 const pad = (s, n) => String(s).padEnd(n);
 const rpad = (s, n) => String(s).padStart(n);
+// Length as the terminal sees it, with the escape sequences taken out.
+const vis = (s) => s.replace(/\x1b\[[0-9;]*m/g, "").length;
+
+function bar(p, width) {
+  const filled = p * width;
+  const whole = Math.floor(filled);
+  const rest = filled - whole;
+  let out = "█".repeat(whole);
+  if (whole < width && rest > 0.08) out += BLOCKS[Math.max(0, Math.round(rest * 7) - 1)];
+  return pad(out, width);
+}
+
+function spark(values, width) {
+  if (!values.length) return " ".repeat(width);
+  const take = values.slice(-width);
+  return take.map((v) => BLOCKS[Math.min(7, Math.max(0, Math.round(v * 7)))]).join("");
+}
 
 const LOGO = [
   " ██████  ██████   █████  ██ ██████ ",
@@ -51,139 +85,163 @@ const LOGO = [
 // ── state ────────────────────────────────────────────────────────────────────
 const seen = new Set();
 const rows = [];
+const history = [];              // every score seen, for the sparkline
 let cursor = null;
-let record = null;      // live track record, for the line under each score
-let checked = 0, started = Date.now();
+let record = null;
+let checked = 0, started = Date.now(), frame = 0, polling = false, lastPoll = 0;
 
 async function loadRecord() {
   try {
-    const r = await fetch(API + "/api/scoreboard");
-    const b = await r.json();
+    const b = await (await fetch(API + "/api/scoreboard")).json();
     record = { auc: b.auc, resolved: b.resolved, base: b.eventRate,
                hit: b.topDecile && b.topDecile.hitRate };
-  } catch { /* the console still works without it; the line is simply omitted */ }
+  } catch { /* the view still works without it; those lines are simply omitted */ }
 }
 
 async function poll() {
-  const head = await READ.getBlockNumber();
-  if (cursor === null) cursor = head - 300n;
-  if (head <= cursor) return;
-  let from = cursor + 1n;
-  if (head - from > 12000n) from = head - 12000n;
-  const logs = await LOGS.getLogs({
-    address: FACTORY, event: evTokenLaunched, fromBlock: from, toBlock: head,
-  });
-  cursor = head;
-  // Newest first, and only as many as fit: this is a window on the flow, not a
-  // ledger. The ledger is the repository.
-  for (const l of logs.slice(-ROWS).reverse()) {
-    const key = l.transactionHash + ":" + l.logIndex;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    try {
-      const row = await readToken(l.args.token, { tx: l.transactionHash });
-      row.deployerLaunches = 1;
-      row.symbolClones = 1;
-      const out = predict(model.outside, row);
-      rows.unshift({
-        at: Date.now(),
-        symbol: String(row.symbol ?? "").slice(0, 14) || "?",
-        token: l.args.token,
-        phase: PHASE[row.phase] ?? "on curve",
-        p: out.p,
-        devBuyPct: row.devBuyPct,
-        flags: (flags(row, model.outside) ?? []).slice(0, 3),
-      });
-      checked++;
-      if (rows.length > ROWS) rows.length = ROWS;
-    } catch { /* a launch we cannot read is skipped rather than half-printed */ }
-  }
+  polling = true;
+  try {
+    const head = await READ.getBlockNumber();
+    if (cursor === null) cursor = head - 300n;
+    if (head <= cursor) return;
+    let from = cursor + 1n;
+    if (head - from > 12000n) from = head - 12000n;
+    const logs = await LOGS.getLogs({
+      address: FACTORY, event: evTokenLaunched, fromBlock: from, toBlock: head,
+    });
+    cursor = head;
+    for (const l of logs.slice(-ROWS).reverse()) {
+      const key = l.transactionHash + ":" + l.logIndex;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      try {
+        const row = await readToken(l.args.token, { tx: l.transactionHash });
+        row.deployerLaunches = 1;
+        row.symbolClones = 1;
+        const out = predict(model.outside, row);
+        rows.unshift({
+          at: Date.now(), p: out.p, token: l.args.token,
+          symbol: String(row.symbol ?? "").slice(0, 14) || "?",
+          phase: PHASE[row.phase] ?? "on curve",
+          devBuyPct: row.devBuyPct,
+          flags: (flags(row, model.outside) ?? []).slice(0, 3),
+        });
+        history.push(out.p);
+        if (history.length > 400) history.shift();
+        checked++;
+        if (rows.length > ROWS) rows.length = ROWS;
+      } catch { /* a launch we cannot read is skipped rather than half-printed */ }
+    }
+  } finally { polling = false; lastPoll = Date.now(); }
 }
 
 // ── render ───────────────────────────────────────────────────────────────────
-function draw() {
-  const w = Math.max(78, process.stdout.columns || 100);
-  const t = new Date().toISOString().slice(11, 19);
-  const out = [];
-  const rule = C.dim + "─".repeat(Math.min(w - 2, 96)) + C.off;
+const SPIN = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
 
+function draw() {
+  frame++;
+  const W = Math.min(Math.max(84, process.stdout.columns || 100) - 2, 104);
+  const out = [];
+  const line = (ch) => C.faint + ch.repeat(W) + C.off;
+
+  // Header. The logo breathes very slightly so the frame is never quite still.
+  const glow = 0.82 + 0.18 * Math.sin(frame / 9);
+  const lr = Math.round(168 * glow), lg = Math.round(255 * glow), lb = Math.round(98 * glow);
   out.push("");
-  for (const l of LOGO) out.push(C.acid + C.bold + l + C.off);
-  out.push(C.muted + " scores every launch on Robinhood Chain before the outcome exists" + C.off);
+  for (const l of LOGO) out.push(rgb(lr, lg, lb) + C.bold + "  " + l + C.off);
+  out.push(C.dim + "  scores every launch on Robinhood Chain before the outcome exists" + C.off);
   out.push("");
+
+  const dot = polling ? C.amber + SPIN[frame % SPIN.length]
+                      : C.acid + (frame % 8 < 4 ? "●" : "○");
   out.push(
-    C.acid + C.bold + "graid watch" + C.off + C.dim + " · " + C.off +
-    C.muted + "pons v2" + C.off + C.dim + " · " + C.off +
-    C.muted + "Robinhood Chain (4663)" + C.off + C.dim + " · " + C.off +
-    "\x1b[48;2;168;255;98m\x1b[38;2;7;8;6m READ ONLY \x1b[0m" + C.dim + " · " + C.off +
-    C.muted + "no signer" + C.off + C.dim + " · " + C.off +
-    C.muted + "live chain" + C.off);
-  out.push(C.dim + t + "  checked " + checked + " · on screen " + rows.length +
-           " · model " + model.version + " · uptime " +
-           Math.round((Date.now() - started) / 1000) + "s" + C.off);
-  out.push(rule);
+    "  " + dot + C.off + " " + C.acid + C.bold + "graid watch" + C.off +
+    C.faint + "  ·  " + C.off + C.muted + "pons v2" + C.off +
+    C.faint + "  ·  " + C.off + C.muted + "chain 4663" + C.off +
+    C.faint + "  ·  " + C.off + bg(168, 255, 98) + rgb(7, 8, 6) + " READ ONLY " + C.off +
+    C.faint + "  ·  " + C.off + C.muted + "no signer" + C.off);
+  out.push(
+    C.faint + "  " + new Date().toISOString().slice(11, 19) +
+    "   scored " + C.off + C.muted + checked + C.off +
+    C.faint + "   model " + C.off + C.muted + model.version + C.off +
+    C.faint + "   up " + C.off + C.muted + Math.round((Date.now() - started) / 1000) + "s" + C.off +
+    (history.length ? C.faint + "   " + C.off + ramp(history[history.length - 1]) +
+      spark(history, 28) + C.off : ""));
+  out.push(line("─"));
 
   if (!rows.length) {
     out.push("");
-    out.push(C.dim + "  waiting for the next launch…" + C.off);
+    out.push(C.dim + "  " + SPIN[frame % SPIN.length] + "  waiting for the next launch…" + C.off);
   }
 
   for (const r of rows) {
+    const age = (Date.now() - r.at) / 1000;
+    const fresh = age < 12;                       // newly arrived rows announce themselves
+    const col = ramp(r.p);
     const clock = new Date(r.at).toISOString().slice(11, 19);
-    const col = band(r.p);
+    const mark = fresh
+      ? (frame % 6 < 3 ? C.acid + "▶" : C.amber + "▶")
+      : C.faint + "│";
+
     out.push("");
+    const name = (fresh ? C.paper + C.bold : C.muted) + pad("$" + r.symbol, 16) + C.off;
     out.push(
-      C.dim + clock + "  " + C.off +
-      C.paper + C.bold + pad("$" + r.symbol, 16) + C.off +
-      C.dim + r.token.slice(0, 8) + "…" + r.token.slice(-4) + "  " + C.off +
-      C.muted + pad(r.phase, 11) + C.off +
-      col + C.bold + rpad(pct(r.p), 7) + C.off);
-    const bits = [];
+      "  " + mark + C.off + " " + C.faint + clock + C.off + "  " + name +
+      C.faint + r.token.slice(0, 6) + "…" + r.token.slice(-4) + C.off +
+      "  " + C.faint + pad(r.phase, 10) + C.off +
+      col + bar(r.p, 18) + C.off + " " + col + C.bold + rpad(pct(r.p), 7) + C.off);
+
     const texts = r.flags.map((f) => String(f.text || "").toLowerCase());
-    // The flag list already mentions the creator buy when it matters; printing it
+    const bits = [];
+    // The flags already mention the creator buy when it matters; printing it
     // separately as well read as the same fact twice with different rounding.
     if (r.devBuyPct != null && !texts.some((t) => t.startsWith("creator in")))
       bits.push("creator in " + r.devBuyPct.toFixed(1) + "%");
     for (const t of texts) bits.push(t);
-    out.push(C.dim + "  " + bits.join(" · ") + C.off);
-    // The line that a block explorer cannot print: how often we are right at
-    // this level, taken from the record rather than asserted.
+    out.push("    " + C.faint + "│  " + C.off + C.dim + bits.join(C.faint + " · " + C.dim) + C.off);
+
     if (record && record.resolved) {
       const note = r.p > 0.7
         ? "calls this high came true " + pct(record.hit ?? 0) + " of the time"
         : "outside money arrives " + pct(record.base) + " of the time overall";
-      out.push(C.dim + "  written before the outcome · " + note + C.off);
+      out.push("    " + C.faint + "└  written before the outcome · " + note + C.off);
     }
   }
 
   out.push("");
-  out.push(rule);
+  out.push(line("─"));
   if (record && record.resolved) {
     out.push(
-      C.muted + " record  " + C.off +
-      C.paper + record.resolved.toLocaleString("en-US") + C.off + C.dim + " scored · " + C.off +
-      C.paper + "AUC " + record.auc.toFixed(3) + C.off + C.dim + " · base " + C.off +
-      C.paper + pct(record.base) + C.off +
-      C.dim + " · recomputable with npm run verify" + C.off);
+      "  " + C.muted + "record" + C.off +
+      C.faint + "   " + C.off + C.paper + record.resolved.toLocaleString("en-US") + C.off +
+      C.faint + " scored" + C.off +
+      C.faint + "   AUC " + C.off + C.paper + record.auc.toFixed(3) + C.off +
+      C.faint + "   base " + C.off + C.paper + pct(record.base) + C.off +
+      C.faint + "   recompute it yourself: npm run verify" + C.off);
   }
-  out.push(C.dim + " ctrl+c to stop · nothing is signed, no wallet is touched · graid-ai.com" + C.off);
+  out.push(C.faint + "  ctrl+c to stop · nothing is signed, no wallet is touched · graid-ai.com" + C.off);
   out.push("");
 
-  // Repaint from the top rather than scrolling, so the frame stays still.
-  process.stdout.write("\x1b[H\x1b[2J" + out.join("\n") + "\n");
+  // Pad every line to the same width and repaint in place. Clearing the screen
+  // each frame makes the whole thing flicker at this rate.
+  const painted = out.map((l) => l + " ".repeat(Math.max(0, W + 2 - vis(l))) + C.off).join("\n");
+  process.stdout.write("\x1b[H" + painted + "\x1b[J\n");
 }
 
 // ── run ──────────────────────────────────────────────────────────────────────
 await loadRecord();
-try { await poll(); } catch { /* first pass may race the RPC; the next one retries */ }
-draw();
+try { await poll(); } catch { /* the first pass can race the RPC; the next retries */ }
 
-if (!ONCE) {
-  process.stdout.write("\x1b[?25l");                       // hide the cursor
+if (ONCE) {
+  process.stdout.write("\x1b[2J");
+  draw();
+} else {
+  process.stdout.write("\x1b[2J\x1b[?25l");                  // clear once, hide the cursor
   const stop = () => { process.stdout.write("\x1b[?25h\n"); process.exit(0); };
   process.on("SIGINT", stop);
   process.on("SIGTERM", stop);
-  setInterval(async () => { try { await poll(); } catch {} draw(); }, 4000);
+  draw();
+  setInterval(draw, 250);                                    // smooth enough to animate
+  setInterval(async () => { try { await poll(); } catch {} }, 4000);
   setInterval(loadRecord, 60000);
-  setInterval(draw, 1000);                                 // keep the clock moving
 }
