@@ -8,6 +8,7 @@
     "start": "node src/server.mjs",
     "test": "node --test \"test/*.test.mjs\"",
     "verify": "node scripts/verify.mjs",
+    "watch": "node src/console.mjs",
     "model": "node src/model.mjs",
     "recalibrate": "node analysis/recalibrate.mjs --write"
   },
