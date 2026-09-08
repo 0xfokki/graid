@@ -61,6 +61,6 @@ writeFileSync(join(DATA, "graduated.json"), JSON.stringify({
   stats: { mature: mature.length, graduated: g.length, base: g.length / mature.length,
            hiRate, loRate, lift: loRate ? hiRate / loRate : null,
            hiN: mature.filter(d => d.p_outside >= 0.65).length },
-  list: list.slice(0, 60),
+  list: list.slice(0, 200),   // the page picks a varied handful out of this
 }, null, 1));
 console.log(`\n-> graduated.json  (${list.length} entries)`);
