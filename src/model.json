@@ -1,5 +1,5 @@
 {
- "version": "342dafb0",
+ "version": "41e6d419",
  "eventThreshold": 10,
  "observationHours": 2,
  "windows": 4,
@@ -190,6 +190,15 @@
      }
     }
    }
+  },
+  "calibration": {
+   "method": "platt",
+   "a": 0.3884793158720954,
+   "b": -0.9646905959539346,
+   "fittedOn": 5752,
+   "validatedOn": 2877,
+   "fittedAt": "2026-09-08T09:53:50.669Z",
+   "note": "fitted on recent corrected-population outcomes; validated on the newest chronological holdout"
   }
  },
  "graduated": {
@@ -391,13 +400,5 @@
   "brier": 0.2077,
   "brierConst": 0.2258
  },
- "builtAt": "2026-09-05T23:03:02.741Z",
- "calibration": {
-  "method": "platt",
-  "a": 0.5378,
-  "b": -0.2175,
-  "fittedOn": 4070,
-  "fittedAt": "2026-09-06T07:20:00Z",
-  "note": "fitted on live outcomes; method selected by comparison on a held-out third"
- }
+ "builtAt": "2026-09-05T23:03:02.741Z"
 }

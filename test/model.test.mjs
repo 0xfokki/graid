@@ -3,6 +3,7 @@
 // These cover invariants we actually got wrong at some point, not arithmetic.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "fs";
 import { fit, predict, BUCKETS, NO_DATA } from "../src/model.mjs";
 
 // A row the bucket functions can read. Every field is present so that
@@ -70,4 +71,17 @@ test("probabilities stay strictly inside (0, 1)", () => {
     assert.ok(p > 0 && p < 1, `probability out of range: ${p}`);
     assert.ok(Number.isFinite(p), `probability not finite: ${p}`);
   }
+});
+
+test("the shipped outside model carries calibration on the object the server scores", () => {
+  const shipped = JSON.parse(readFileSync(new URL("../src/model.json", import.meta.url), "utf8"));
+  assert.ok(shipped.outside.calibration, "model.outside.calibration is missing");
+  assert.equal(shipped.calibration, undefined,
+    "a top-level calibration is ignored because the server passes model.outside to predict()");
+
+  const calibrated = predict(shipped.outside, row()).p;
+  const rawModel = { ...shipped.outside };
+  delete rawModel.calibration;
+  const raw = predict(rawModel, row()).p;
+  assert.notEqual(calibrated, raw, "the production scoring path must apply calibration");
 });

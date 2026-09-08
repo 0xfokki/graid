@@ -8,7 +8,8 @@
     "start": "node src/server.mjs",
     "test": "node --test \"test/*.test.mjs\"",
     "verify": "node scripts/verify.mjs",
-    "model": "node src/model.mjs"
+    "model": "node src/model.mjs",
+    "recalibrate": "node analysis/recalibrate.mjs --write"
   },
   "engines": { "node": ">=20" },
   "dependencies": { "viem": "^2.21.0" }

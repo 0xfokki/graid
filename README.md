@@ -124,13 +124,13 @@ With the bug fixed the agent sees the whole population, and measured against it 
 model scores worse — live AUC fell from 0.745 to 0.649 on predictions made after the fix.
 The earlier figure was not skill. It was an easier sample.
 
-The Brier score is currently **worse than always guessing the base rate**. The ranking still
-carries signal — AUC 0.726 against 0.5 for a coin — but the probabilities themselves are
-overconfident, because the calibration was fitted when the observed base rate was 28.6%
-and it is now 23.2%. Refitting it on the corrected population is the next piece of work.
+The historical Brier score is **worse than always guessing the base rate**. The ranking still
+carries signal — AUC 0.726 against 0.5 for a coin — but those recorded probabilities were
+overconfident because their calibration was fitted for an older base-rate regime. The model
+now uses a fit from the corrected recent population, validated on a later chronological holdout.
 
-`npm run verify` reports both of these as failures against this README today. That is the
-check working, not the check breaking.
+`npm run verify` keeps checking the immutable historical record; deploying a new model does
+not rewrite old predictions to make that aggregate look better.
 
 ### Migration signal
 
@@ -147,6 +147,7 @@ that recomputes every headline figure from them is in the repository:
 npm install
 npm test              # invariants the track record depends on
 npm run verify        # recompute AUC, Brier, base rate and top-decile hit rate
+npm run recalibrate   # fit recent outcomes, validate chronologically, update model.json
 ```
 
 `verify.mjs` reads the committed prediction and outcome logs, recomputes the

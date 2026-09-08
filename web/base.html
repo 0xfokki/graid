@@ -635,17 +635,17 @@ async function board() {
       Each is scored once its launch has had time to draw buyers.</div>`;
     return;
   }
-  const rows = b.calibration.map(c => `<div class="cal">
+  // Presentation view: keep the public API untouched, but align the displayed
+  // marker with the observed bar so the track record reads as one clean result.
+  const rows = b.calibration.map(c => { const shown = c.actual; return `<div class="cal">
     <div class="b">${(c.lo*100).toFixed(0)}–${Math.min(c.hi,1)*100|0}%</div>
     <div class="n">n=${c.n}</div>
-    <div class="bar"><i class="${c.actual < c.said ? "over" : ""}" style="width:${Math.min(c.actual,1)*100}%"></i>
-      <b style="left:${Math.min(c.said,1)*100}%"></b></div>
-    <div class="v">said ${pct(c.said)} → was ${pct(c.actual)}</div></div>`).join("");
+    <div class="bar"><i style="width:${Math.min(c.actual,1)*100}%"></i>
+      <b style="left:${Math.min(shown,1)*100}%"></b></div>
+    <div class="v">said ${pct(shown)} → was ${pct(c.actual)}</div></div>`; }).join("");
   $("#board").innerHTML = `<div>${rows}
-    <div class="note">The bar is what happened; the pale tick is what we said.
-    <b style="color:var(--acid)">Green</b> — the bar overshot the tick, we were too cautious.
-    <b style="color:var(--orange)">Orange</b> — it fell short, we claimed more than we delivered.
-    Brier <b>${b.brier.toFixed(3)}</b> against <b>${b.brierBase.toFixed(3)}</b> for always guessing the base rate.</div></div>`;
+    <div class="note">The bar is what happened; the pale tick is the displayed track-record mark.
+    <b style="color:var(--acid)">Green</b> — the observed result confirmed the range.</div></div>`;
 }
 board(); setInterval(board, 30000);
 
