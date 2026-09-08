@@ -54,8 +54,8 @@ body { margin:0; background:var(--ink); color:var(--paper);
   color:var(--muted); margin-bottom:20px; }
 .eyebrow .a { color:var(--acid); }
 h1 em { font-style:normal; color:var(--acid); }
-h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:auto;
-  font-size:clamp(30px,3.4vw,52px); line-height:1.06; letter-spacing:-.018em;
+h1 { font-family:var(--serif); font-weight:600; margin:0; font-optical-sizing:auto;
+  font-size:clamp(34px,4.1vw,62px); line-height:1.04; letter-spacing:-.022em;
   color:var(--paper); text-align:left; }
 
 .lede { margin:22px 0 0; max-width:60ch; text-wrap:pretty; color:var(--muted); font-size:15px;
@@ -197,11 +197,12 @@ h1 { font-family:var(--serif); font-weight:400; margin:0; font-optical-sizing:au
   .sHead b { color:var(--acid); }
   .sHead { padding-bottom:9px; border-bottom:1px solid var(--line-soft); }
 }
-.pipeText { padding:10px 26px 0; max-width:64ch; position:relative; z-index:2; }
+/* Wide enough that the second line stays one line at the larger size. */
+.pipeText { padding:10px 26px 0; max-width:100ch; position:relative; z-index:2; }
 /* The contract strip sits between the subtitle and diagram, with enough space
    on both sides to keep it separate from the copy and pipeline. */
 #ca { margin:46px 26px 40px; position:relative; z-index:2; }
-.pipeText h1 { font-size:clamp(28px,3.2vw,46px); }
+.pipeText h1 { font-size:clamp(28px,4.0vw,58px); }
 .pipeText .lede { margin-top:14px; max-width:52ch; font-size:14px; }
 
 .nodeBox { fill:#0d0f0b; stroke:#232620; stroke-width:1; }
