@@ -12,9 +12,9 @@
 </p>
 
 <p align="center">
-  <img alt="predictions" src="https://img.shields.io/badge/predictions-36%2C166-a8ff62?style=flat-square&labelColor=070806">
-  <img alt="scored" src="https://img.shields.io/badge/scored-21%2C017-e8e8dd?style=flat-square&labelColor=070806">
-  <img alt="auc" src="https://img.shields.io/badge/AUC%20live-0.726-a8ff62?style=flat-square&labelColor=070806">
+  <img alt="predictions" src="https://img.shields.io/badge/predictions-113%2C055-a8ff62?style=flat-square&labelColor=070806">
+  <img alt="scored" src="https://img.shields.io/badge/scored-65%2C896-e8e8dd?style=flat-square&labelColor=070806">
+  <img alt="auc" src="https://img.shields.io/badge/AUC%20live-0.757-a8ff62?style=flat-square&labelColor=070806">
   <img alt="chain" src="https://img.shields.io/badge/Robinhood%20Chain-4663-e8e8dd?style=flat-square&labelColor=070806">
   <img alt="custody" src="https://img.shields.io/badge/custody-none-e8e8dd?style=flat-square&labelColor=070806">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-ff653d?style=flat-square&labelColor=070806">
@@ -30,7 +30,7 @@
 
 Thousands of tokens can launch in a single day. Most never attract meaningful demand, and only a small fraction fill their bonding curve and reach a real exchange.
 
-GRAID is an always-on **predictive AI agent** built to identify that signal at launch time. It has already scored more than **15,000 live launches**. For each new `TokenLaunched` event, it gathers on-chain context, assigns a probability, and permanently records its call while the answer is still unknown.
+GRAID is an always-on **predictive AI agent** built to identify that signal at launch time. It has already scored more than **110,000 live launches**. For each new `TokenLaunched` event, it gathers on-chain context, assigns a probability, and permanently records its call while the answer is still unknown.
 
 Later, the agent revisits the curve, measures what actually happened, and adds the result to its public track record. Wins and misses are treated the same way. There is no wallet, no trade execution, and no hand-picked showcase.
 
@@ -98,18 +98,18 @@ The model combines empirical feature rates in log-odds space and applies Platt c
 
 ## Public track record
 
-Snapshot from **2026-09-07**. The live record continues to grow, and the site reads
+Snapshot from **2026-09-10**. The live record continues to grow, and the site reads
 these figures from it directly rather than from this table.
 
 | Metric | Result |
 |---|---:|
-| Predictions on record | 36,166 |
-| Predictions resolved | 21,017 |
-| Live AUC | **0.726** |
-| Brier score | 0.200 |
-| Base-rate Brier | **0.191** |
-| Outside-money base rate | 23.2% |
-| Top-decile hit rate | **35.5%** |
+| Predictions on record | 113,055 |
+| Predictions resolved | 65,896 |
+| Live AUC | **0.757** |
+| Brier score | **0.161** |
+| Base-rate Brier | 0.167 |
+| Outside-money base rate | 21.3% |
+| Top-decile hit rate | **43.1%** |
 
 The held-out training check produced an AUC of **0.729**, with a range of 0.665–0.786 across four folds.
 
@@ -124,10 +124,11 @@ With the bug fixed the agent sees the whole population, and measured against it 
 model scores worse — live AUC fell from 0.745 to 0.649 on predictions made after the fix.
 The earlier figure was not skill. It was an easier sample.
 
-The historical Brier score is **worse than always guessing the base rate**. The ranking still
-carries signal — AUC 0.726 against 0.5 for a coin — but those recorded probabilities were
-overconfident because their calibration was fitted for an older base-rate regime. The model
-now uses a fit from the corrected recent population, validated on a later chronological holdout.
+On the corrected population the Brier score has moved **ahead of always guessing the base
+rate** — 0.161 against 0.167 — and the ranking carries more signal than before, AUC 0.757
+against 0.5 for a coin. The predictions recorded under the old regime were still overconfident,
+because their calibration was fitted for an older base rate. The model now uses a fit from the
+corrected population, validated on a later chronological holdout.
 
 `npm run verify` keeps checking the immutable historical record; deploying a new model does
 not rewrite old predictions to make that aggregate look better.
@@ -232,7 +233,7 @@ The agent is designed to make hindsight manipulation difficult:
 
 ## Limitations
 
-- The initial feature-rate fit used a sample drawn from four time windows on a single day; the 15K+ figure refers to launches scored live, not the training-set size.
+- The initial feature-rate fit used a sample drawn from four time windows on a single day; the 110K+ figure refers to launches scored live, not the training-set size.
 - It has limited evidence across major market-regime changes.
 - Naive Bayes can double-count correlated signals and overstate confidence.
 - The migration model is based on far fewer positive examples than the traction model.
