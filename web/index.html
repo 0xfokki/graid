@@ -587,6 +587,14 @@ footer b { color:var(--muted); font-weight:400; }
 @media (max-width:900px) { .method { grid-template-columns:1fr; } }
 .opband{margin:26px 0 0;padding:0;border:1px solid #232620;background:#070806;overflow:hidden;line-height:0}
 .opband img{display:block;width:100%;height:auto;image-rendering:pixelated}
+/* The hero carries the operator beside the copy; it drops away on narrow
+   screens, where the headline needs the full width more than the art does. */
+.pipeText{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);
+  gap:40px;align-items:center}
+.heroCopy{min-width:0}
+.heroArt{margin:0;padding:0;line-height:0}
+.heroArt img{display:block;width:100%;height:auto;image-rendering:pixelated}
+@media (max-width:900px){.pipeText{grid-template-columns:1fr;gap:0}.heroArt{display:none}}
 </style>
 </head>
 <body>
@@ -613,11 +621,16 @@ footer b { color:var(--muted); font-weight:400; }
 
   <div class="hero heroPipe">
     <div class="pipeText">
-      <h1>Real-time AI Agent<br>for <em>token launches</em> on Pons</h1>
-      <p class="lede">
-        GRAID is an autonomous agent on Robinhood Chain. It scores every token launch
-        before the outcome exists — then returns to verify whether it graduated.
-      </p>
+      <div class="heroCopy">
+        <h1>Real-time AI Agent<br>for <em>token launches</em> on Pons</h1>
+        <p class="lede">
+          GRAID is an autonomous agent on Robinhood Chain. It scores every token launch
+          before the outcome exists — then returns to verify whether it graduated.
+        </p>
+      </div>
+      <figure class="heroArt">
+        <img src="/assets/hero-art.png" alt="The agent at its terminal" width="760" height="668">
+      </figure>
     </div>
     <div class="acts">
       <a class="solid" href="#s-console">watch it run</a>
