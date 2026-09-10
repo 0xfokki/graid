@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 const WEB = process.env.WEB_DIR ?? join(HERE, "..", "web");
 const WINDOWS = process.env.WINDOWS_DIR ?? HERE;
+const ASSETS = process.env.ASSETS_DIR ?? join(HERE, "..", "assets");
 import { LOGS, READ, FACTORY, evTokenLaunched, readToken, curveActivity } from "./chain.mjs";
 import { predict } from "./model.mjs";
 import { flags } from "./flags.mjs";
@@ -297,6 +298,20 @@ createServer(async (req, res) => {
   if (url.pathname === "/") {
     res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
     return res.end(readFileSync(join(WEB, "index.html")));
+  }
+
+  // Social scrapers cannot read a data: URI, so og:image has to be a real file.
+  // Only the bundled assets directory is exposed, and only by basename, so a
+  // crafted path cannot climb out of it.
+  if (url.pathname.startsWith("/assets/")) {
+    const name = url.pathname.slice("/assets/".length);
+    const type = { ".png": "image/png", ".svg": "image/svg+xml", ".webp": "image/webp" }[name.slice(name.lastIndexOf("."))];
+    const file = join(ASSETS, name);
+    if (!type || name.includes("/") || name.includes("\\") || !existsSync(file)) {
+      res.writeHead(404); return res.end("not found");
+    }
+    res.writeHead(200, { "content-type": type, "cache-control": "public, max-age=86400" });
+    return res.end(readFileSync(file));
   }
 
   if (url.pathname === "/api/status") {
