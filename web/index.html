@@ -592,8 +592,8 @@ footer b { color:var(--muted); font-weight:400; }
 .pipeText{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);
   gap:40px;align-items:center}
 .heroCopy{min-width:0}
-.heroArt{margin:0;padding:0;line-height:0}
-.heroArt img{display:block;width:100%;height:auto;image-rendering:pixelated}
+.heroArt{margin:0;padding:0;line-height:0;display:flex;justify-content:flex-end}
+.heroArt img{display:block;width:320px;max-width:100%;height:auto;image-rendering:pixelated}
 @media (max-width:900px){.pipeText{grid-template-columns:1fr;gap:0}.heroArt{display:none}}
 </style>
 </head>
@@ -629,7 +629,7 @@ footer b { color:var(--muted); font-weight:400; }
         </p>
       </div>
       <figure class="heroArt">
-        <img src="/assets/hero-art.png" alt="The agent at its terminal" width="760" height="668">
+        <img src="/assets/hero-art.png" alt="The agent at its terminal" width="640" height="564">
       </figure>
     </div>
     <div class="acts">
