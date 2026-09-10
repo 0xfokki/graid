@@ -32,10 +32,12 @@ mkdir -p data
 cp -f "$BACKUPS"/*.jsonl.gz data/ 2>/dev/null || true
 
 # Keep the published code in step with what is actually running.
-cp -f "$APP"/*.mjs src/ 2>/dev/null || true
-cp -f "$APP"/model.json src/ 2>/dev/null || true
-cp -f "$APP"/index.html "$APP"/base.html web/ 2>/dev/null || true
-rm -f src/*.bak web/*.bak 2>/dev/null || true
+# The app keeps its code in src/ and its pages in web/, so the copies have to reach
+# into those directories. They used to read $APP directly, matched nothing, and failed
+# silently: the published code quietly stopped following the code actually running.
+cp -f "$APP"/src/*.mjs "$APP"/src/*.json src/ 2>/dev/null || true
+cp -f "$APP"/web/index.html "$APP"/web/base.html web/ 2>/dev/null || true
+rm -f src/*.bak src/*.prev web/*.bak web/*.prev 2>/dev/null || true
 
 git add -A
 if git diff --cached --quiet; then
